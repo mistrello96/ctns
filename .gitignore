@@ -1,0 +1,16 @@
+contact_simulation_app/__pycache__/
+
+contact_network_simulator/network_dumps/
+
+contact_network_simulator/__pycache__/
+
+contact_network_simulator/contact_network_simulator.egg-info/
+
+contact_network_simulator/build/scripts-3.8/
+
+ctns/network_dumps/
+
+ctns/ctns.egg-info/
+
+ctns/build/
+ctns/ctns/__pycache__/
