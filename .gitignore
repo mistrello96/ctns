@@ -8,9 +8,9 @@ contact_network_simulator/contact_network_simulator.egg-info/
 
 contact_network_simulator/build/scripts-3.8/
 
-ctns/network_dumps/
+network_dumps/
 
-ctns/ctns.egg-info/
+ctns.egg-info/
 
-ctns/build/
-ctns/ctns/__pycache__/
+build/
+ctns/__pycache__/
