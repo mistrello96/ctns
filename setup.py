@@ -13,4 +13,6 @@ setup(
   author = 'Matteo Mistri, Diego Miglio',
   author_email = 'matteo.mistri1996@gmail.com',
   install_requires = required,
+  url = "https://gitlab.com/mistrello96/ctns",
+  download_url='https://pypi.org/project/ctns/',
 )
