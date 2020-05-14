@@ -1,0 +1,1439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>ctns.steps API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ctns.steps</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import igraph as ig
+import random
+import numpy as np
+from collections import Counter
+
+def generate_family_edges(G):
+    &#34;&#34;&#34;
+    Generate family edges. All edges between nodes of the same family are created
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    toAdd = []
+
+    for node in G.vs:
+        for edge in node[&#34;family_contacts&#34;]:
+            if G.vs[edge[0]][&#34;agent_status&#34;] != &#34;D&#34; \
+            and G.vs[edge[1]][&#34;agent_status&#34;] != &#34;D&#34; \
+            and not G.vs[edge[0]][&#34;quarantine&#34;] \
+            and not G.vs[edge[1]][&#34;quarantine&#34;]:
+            #and not (edge[0], edge[1]) in toAdd
+            #and not (edge[1], edge[0]) in toAdd:
+                toAdd.append(edge)
+
+    weights = np.random.randint(3, 8, len(toAdd))
+    G.add_edges(toAdd)
+    for (edge_index, i) in zip(G.get_eids(toAdd, directed = False), range(len(weights))):
+      G.es[edge_index][&#34;weight&#34;] = weights[i]
+      G.es[edge_index][&#34;category&#34;] = &#34;family_contacts&#34;  
+
+def generate_occfreq_edges(G, edge_category, restriction_value):
+    &#34;&#34;&#34;
+    Create edges from the node of type edge_category
+    The number of edges is chosen according to the sociality of the node
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    edge_category: string
+        Category of the edge attribute
+    
+    restriction_value: float
+        How many edges are dropped in proportion to normal condition?
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    toAdd = []
+
+    for node in G.vs:
+        possible_edges = node[edge_category].copy()
+        random.shuffle(possible_edges)
+        tmp = int(len(possible_edges) / 3)
+        tmp2 = int(2 * len(possible_edges) / 3)
+        if node[&#34;sociality&#34;] == &#34;low&#34;:
+            n_edges = int(random.random() * tmp)
+        if node[&#34;sociality&#34;] == &#34;medium&#34;:
+            n_edges = tmp + int(random.random() * (tmp2 - tmp))
+        if node[&#34;sociality&#34;] == &#34;high&#34;:
+            n_edges = tmp2 + int(random.random() * (len(possible_edges) + 1 - tmp2))
+        n_edges = int(n_edges * restriction_value)
+
+        for i in range (0, n_edges):
+            edge = possible_edges[i]
+            if G.vs[edge[0]][&#34;agent_status&#34;] != &#34;D&#34; \
+            and G.vs[edge[1]][&#34;agent_status&#34;] != &#34;D&#34; \
+            and not G.vs[edge[0]][&#34;quarantine&#34;] \
+            and not G.vs[edge[1]][&#34;quarantine&#34;] \
+            and not G[edge[0], edge[1]]:
+            #and not (edge[0], edge[1]) in toAdd \
+            #and not (edge[1], edge[0]) in toAdd:
+                toAdd.append(edge)
+
+    weights = np.random.randint(1, 6, len(toAdd))
+    G.add_edges(toAdd)
+    for (edge_index, i) in zip(G.get_eids(toAdd, directed = False), range(len(weights))):
+      G.es[edge_index][&#34;weight&#34;] = weights[i]
+      G.es[edge_index][&#34;category&#34;]= edge_category  
+
+def generate_random_edges(G, number_of_random_edges, restriction_value):
+    &#34;&#34;&#34;
+    Create number_of_random_edges random edges in the contact network
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+        
+    number_of_random_edges : int
+        Number of edges to create
+    
+    restriction_value: float
+        How many edges are dropped in proportion to normal condition?
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    toAdd = []
+    number_of_random_edges = int(number_of_random_edges * restriction_value)
+    edge_list = np.random.randint(0, len(list(G.vs)) - 1, 2 * number_of_random_edges)
+    for i in range (0, 2 * number_of_random_edges, 2):
+        source = edge_list[i]
+        target = edge_list[i + 1]
+        if not G[source, target] \
+        and source != target \
+        and G.vs[source][&#34;agent_status&#34;] != &#34;D&#34; \
+        and G.vs[target][&#34;agent_status&#34;] != &#34;D&#34; \
+        and not G.vs[source][&#34;quarantine&#34;] \
+        and not G.vs[target][&#34;quarantine&#34;] \
+        and not G[source, target]:
+        #and not (source, target) in toAdd \
+        #and not (target, source) in toAdd:
+            toAdd.append((source, target))
+
+    G.add_edges(toAdd)
+    for edge_index in G.get_eids(toAdd, directed = False):
+      G.es[edge_index][&#34;weight&#34;] = 1
+      G.es[edge_index][&#34;category&#34;]= &#34;random_contacts&#34;  
+
+def step_edges(G, restriction_value):
+    &#34;&#34;&#34;
+    Remove old edges
+    Create new edges
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    restriction_value: float
+        How many edges are dropped in proportion to normal condition?
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    
+    G.delete_edges(list(G.es))
+
+    generate_family_edges(G)
+
+    generate_occfreq_edges(G, &#34;frequent_contacts&#34;, restriction_value)
+    generate_occfreq_edges(G, &#34;occasional_contacts&#34;, restriction_value)
+
+    random_contact_total = len(list(G.vs)) + random.random() * (7 * len(list(G.vs)) - len(list(G.vs)))
+    generate_random_edges(G, random_contact_total, restriction_value)
+
+    # since edge generation produce a multigraph but a single edge has attributes as wanted,
+    # all other edges are removed. This produce a simple graph
+    # this operation is way much faster than checking befor adding new edge
+    
+    toRemove = list()
+    for edge in G.es:
+        if edge[&#34;weight&#34;] == None:
+            toRemove.append(edge)
+    G.delete_edges(toRemove)  
+
+def step_spread(G, incubation_days, infection_duration, infection_rate):
+    &#34;&#34;&#34;
+    Make the infection spread across the network
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    incubation_days: int
+        Average number of days where the patient is not infective
+
+    infection_duration: int
+        Average total duration of the disease
+    
+    infection_rate: float
+        Value of the infection_rate rate for the disease in the network
+
+    Return
+    ------
+    None
+    
+    &#34;&#34;&#34;
+    for node in G.vs:
+        # update parameters if node is infected
+        if node[&#34;infected&#34;] == True:
+            node[&#34;days_from_infection&#34;] += 1
+            if node[&#34;days_from_infection&#34;] == infection_duration:
+                # if infection is over, it will be dead of recovered
+                node[&#34;agent_status&#34;] = np.random.choice([&#34;R&#34;, &#34;D&#34;], p = (1 - node[&#34;death_rate&#34;], node[&#34;death_rate&#34;]))
+                node[&#34;infected&#34;] = False
+                node[&#34;symptoms&#34;] = list()
+                node[&#34;days_from_infection&#34;] = 0
+                node[&#34;needs_IC&#34;] = False
+                if node[&#34;agent_status&#34;] == &#34;D&#34;:
+                    node[&#34;quarantine&#34;] = 0
+                    node[&#34;test_result&#34;] = - 1
+                
+            # if it is still infective, spread the infection with his contacts
+            if node[&#34;agent_status&#34;] == &#34;I&#34;:
+                for contact in G.neighborhood(node)[1:]:
+                    if G.vs[contact][&#34;agent_status&#34;] == &#34;S&#34;:
+                        prob = infection_rate * G[node, contact] # access to the weight of the edge
+                        # has the new node been infected?
+                        G.vs[contact][&#34;agent_status&#34;] = np.random.choice([&#34;S&#34;, &#34;E&#34;], p = (1 - prob, prob))
+                        if G.vs[contact][&#34;agent_status&#34;] == &#34;E&#34;:
+                            G.vs[contact][&#34;infected&#34;] = True
+                            G.vs[contact][&#34;days_from_infection&#34;] = 1
+
+            # if the node become I, pick some symptoms
+            if node[&#34;agent_status&#34;] == &#34;E&#34; and node[&#34;days_from_infection&#34;] == incubation_days:
+                node[&#34;agent_status&#34;] = &#34;I&#34;
+                #if mild case
+                case = random.uniform(0, 1)
+                if case &lt; 0.8:
+                    if case &lt; 0.05:
+                        node[&#34;symptoms&#34;].append(&#34;Loss of taste or smell&#34;)
+                    if case &lt; 0.2:
+                        node[&#34;symptoms&#34;].append(&#34;Fever&#34;)
+                    if case &lt; 0.2:
+                        node[&#34;symptoms&#34;].append(&#34;Cough&#34;)
+                    if case &lt; 0.2:
+                        node[&#34;symptoms&#34;].append(&#34;Tiredness&#34;)
+                # if severe
+                else:
+                    if case &lt; 0.99:
+                        node[&#34;symptoms&#34;].append(&#34;Fever&#34;)
+                    if case &lt; 0.7:
+                        node[&#34;symptoms&#34;].append(&#34;Tiredness&#34;)
+                    if case &lt; 0.6:
+                        node[&#34;symptoms&#34;].append(&#34;Cough&#34;)
+                    if case &lt; 0.3:
+                        node[&#34;symptoms&#34;].append(&#34;Dyspnea&#34;)
+                
+                if random.uniform(0, 1) &lt; 0.02:
+                    node[&#34;needs_IC&#34;] = True
+   
+def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracking_efficiency):
+    &#34;&#34;&#34;
+    Test some nodes of the network and put the in quarantine if needed
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    nets: list of ig.Graph()
+        History of the network
+    
+    incubation_days: int
+        Average number of days where the patient is not infective
+
+    n_new_test: int
+        Number of new avaiable tests
+
+    policy_test: string
+        Test strategy
+        Can be [&#34;Random, Degree Centrality, Betweenness Centrality&#34;]
+    
+    contact_tracking_efficiency: float
+        The percentage of contacts successfully traced
+
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+
+    # create pool of nodes to test
+    high_priority_test_pool = set()
+    low_priority_test_pool = set()
+    for node in G.vs:
+        # update quarantine
+        if node[&#34;quarantine&#34;] &gt; 0:
+            node[&#34;quarantine&#34;] -= 1
+            # if node has been found positive and quarantine is over, re-test the node
+            if node[&#34;quarantine&#34;] == 0 and node[&#34;test_result&#34;] == 1:
+                high_priority_test_pool.add(node.index)
+        # update test validity
+        if node[&#34;test_validity&#34;] &gt; 0:
+            node[&#34;test_validity&#34;] -= 1
+        # test also detect if the node is recovered (sierological test)
+        # if node is not dead, if test validity is expired, if node is not a known recovered, add to low priority test pool
+        if node[&#34;agent_status&#34;] != &#34;D&#34; and node[&#34;test_validity&#34;] &lt;= 0 \
+         and not (node[&#34;test_result&#34;] == 0 and node[&#34;agent_status&#34;] == &#34;R&#34;):
+            low_priority_test_pool.add(node.index)
+
+    low_priority_test_pool = low_priority_test_pool - high_priority_test_pool
+    found_positive = set()
+    #cannot directly put nodes in a set cause node object are not supported
+    high_priority_test_pool = [G.vs[i] for i in high_priority_test_pool]
+    low_priority_test_pool = [G.vs[i] for i in low_priority_test_pool]
+    for node in high_priority_test_pool:
+        if node[&#34;infected&#34;]:
+            node[&#34;test_result&#34;] = 1
+            node[&#34;quarantine&#34;] = 14
+            node[&#34;test_validity&#34;] = 14
+            found_positive.add(node.index)
+        else:
+            node[&#34;test_result&#34;] = 0
+            node[&#34;test_validity&#34;] = incubation_days
+
+    if policy_test == &#34;Random&#34; and n_new_test &gt; 0:
+        to_test = random.sample(low_priority_test_pool, min(len(low_priority_test_pool), n_new_test))
+        for node in to_test:
+            if node[&#34;infected&#34;]:
+                node[&#34;test_result&#34;] = 1
+                node[&#34;quarantine&#34;] = 14
+                node[&#34;test_validity&#34;] = 14
+                found_positive.add(node.index)
+            else:
+                node[&#34;test_result&#34;] = 0
+                node[&#34;test_validity&#34;] = incubation_days
+
+    if policy_test == &#34;Degree Centrality&#34; and n_new_test &gt; 0:
+        low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
+        degree_results = G.strength(low_priority_test_pool_index, weights = &#34;weight&#34;)
+        zipped_lists = zip(degree_results, low_priority_test_pool)
+        sorted_pairs = sorted(zipped_lists, reverse = True)
+        tuples = zip(*sorted_pairs)
+        _, sorted_nodes = [ list(tuple) for tuple in  tuples]
+        for i in range(min(n_new_test, len(low_priority_test_pool))):
+            node = sorted_nodes[i]
+            if node[&#34;infected&#34;]:
+                node[&#34;test_result&#34;] = 1
+                node[&#34;quarantine&#34;] = 14
+                node[&#34;test_validity&#34;] = 14
+                found_positive.add(node.index)
+            else:
+                node[&#34;test_result&#34;] = 0
+                node[&#34;test_validity&#34;] = incubation_days
+
+    if policy_test == &#34;Betweenness Centrality&#34; and n_new_test &gt; 0:
+        low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
+        betweenness_results = G.betweenness(low_priority_test_pool_index, 
+                                            directed = False, weights = &#34;weight&#34;,
+                                            cutoff = None)
+        zipped_lists = zip(betweenness_results, low_priority_test_pool)
+        sorted_pairs = sorted(zipped_lists, reverse = True)
+        tuples = zip(*sorted_pairs)
+        _, sorted_nodes = [ list(tuple) for tuple in  tuples]
+        for i in range(min(n_new_test, len(low_priority_test_pool))):
+            node = sorted_nodes[i]
+            if node[&#34;infected&#34;]:
+                node[&#34;test_result&#34;] = 1
+                node[&#34;quarantine&#34;] = 14
+                node[&#34;test_validity&#34;] = 14
+                found_positive.add(node.index)
+            else:
+                node[&#34;test_result&#34;] = 0
+                node[&#34;test_validity&#34;] = incubation_days
+    
+    # to_quarantine will contain family contacts (quarantine 100%), 
+    # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficency
+
+    if len(found_positive) &gt; 0:
+        to_quarantine = set()
+        possibly_quarantine = set()
+        # track to max 14 days before
+        for i in range(1, min(len(nets) + 1, 15)):
+            net = nets[-i]
+            for edge in net.es:
+                if edge[&#34;category&#34;] == &#34;family_contacts&#34; \
+                and (edge.source in found_positive or edge.target in found_positive):
+                    if edge.source in found_positive:
+                        to_quarantine.add(G.vs[edge.target].index)
+                    else:
+                        to_quarantine.add(G.vs[edge.source].index)
+                else:
+                    if edge.source in found_positive:
+                        possibly_quarantine.add(G.vs[edge.target].index)
+                    if edge.target in found_positive:
+                        possibly_quarantine.add(G.vs[edge.source].index)
+        # set differenct to remove double contacts
+
+        possibly_quarantine = random.sample(possibly_quarantine - to_quarantine, int(len(possibly_quarantine) * contact_tracking_efficiency))
+
+        to_quarantine = list(to_quarantine) + possibly_quarantine
+
+        to_quarantine = [G.vs[i] for i in to_quarantine]
+
+        # put them in quarantine
+        # Need test?
+        if to_quarantine != list() and to_quarantine != None:
+            for node in to_quarantine:
+                node[&#34;quarantine&#34;] = 14  
+
+
+&#39;&#39;&#39;
+def step_vaccine(G, n_vacc, policy_vacc, vacc_pool, agent_status_report):
+    &#34;&#34;&#34;
+    Make attributes of nodes consistent
+    Make the infection spread across the network
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+    
+    n_vacc: int
+        Number of vaccines avaiable that day
+    
+    policy_vacc: string
+        How to distribute the daily avaiable vaccines
+        Can be [&#34;Random, Degree Centrality, Betweenness Centrality, Improved Degree Centrality, Improved Betweenness Centrality&#34;]
+    
+    agent_status_report: list
+        Report of nodes status
+
+    Return
+    ------
+    agent_status_report: list
+        Updated report of nodes status
+
+    &#34;&#34;&#34;
+
+    if len(vacc_pool) &gt; 0:
+        
+        # random policy
+        if policy_vacc == &#34;Random&#34;:
+            if n_vacc &gt;= len(vacc_pool):
+                for index in vacc_pool:
+                    agent_status_report[index] = &#34;V&#34;
+                    G.nodes[index][&#34;agent_status&#34;] = &#34;V&#34;
+            else:
+                random_selected_to_vaccinate = random.sample(vacc_pool, n_vacc)
+                for index in random_selected_to_vaccinate:
+                    agent_status_report[index] = &#34;V&#34;
+                    G.nodes[index][&#34;agent_status&#34;] = &#34;V&#34;
+        
+        # degree policy
+        elif policy_vacc == &#34;Degree Centrality&#34;:
+            degree_results = G.degree(vacc_pool)
+            order_by_degree = sorted(degree_results, key=lambda x: x[1], reverse = True)
+
+            for node, value in order_by_degree[:n_vacc]:
+                agent_status_report[node] = &#34;V&#34;
+                G.nodes[node][&#34;agent_status&#34;] = &#34;V&#34;
+
+        elif policy_vacc == &#34;Improved Degree Centrality&#34;:
+            Z = G.subgraph(vacc_pool)
+            degree_results = Z.degree()
+            order_by_degree = sorted(degree_results, key=lambda x: x[1], reverse = True)
+
+            for node, value in order_by_degree[:n_vacc]:
+                agent_status_report[node] = &#34;V&#34;
+                G.nodes[node][&#34;agent_status&#34;] = &#34;V&#34;
+
+        # Betweenness policy
+        elif policy_vacc == &#34;Betweenness Centrality&#34;:
+            betweenness_results = {node: val for node, val in ig.betweenness_centrality(G).items() if node in vacc_pool}
+
+            order_by_betweenness = sorted(betweenness_results, key=betweenness_results.get, reverse = True)
+            
+            for node in order_by_betweenness[:n_vacc]:
+                agent_status_report[node] = &#34;V&#34;
+                G.nodes[node][&#34;agent_status&#34;] = &#34;V&#34;
+
+        elif policy_vacc == &#34;Improved Betweenness Centrality&#34;:
+            betweenness_results = {node: val for node, val in ig.betweenness_centrality_subset(G, sources = vacc_pool, targets = vacc_pool).items() if node in vacc_pool}
+
+            order_by_betweenness = sorted(betweenness_results, key=betweenness_results.get, reverse = True)
+            
+            for node in order_by_betweenness[:n_vacc]:
+                agent_status_report[node] = &#34;V&#34;
+                G.nodes[node][&#34;agent_status&#34;] = &#34;V&#34;
+    return agent_status_report  
+
+&#39;&#39;&#39;
+
+def step(G, step_index, incubation_days, infection_duration, infection_rate,
+         initial_day_restriction, restriction_duration, social_distance_strictness,
+         restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency):
+    &#34;&#34;&#34;
+    Advance the simulation of one step
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+        
+    step_index : int 
+        index of the step
+
+    incubation_days: int
+        Average number of days where the patient is not infective
+
+    infection_duration: int
+        Average total duration of the disease
+    
+    infection_rate: float
+        Value of the infection_rate rate for the disease in the network
+    
+    initial_day_restriction: int
+        Day index from when social distancing measures are applied
+
+    restriction_duration: int
+        How many days the social distancing last. Use -1 to make the restriction last till the end of the simulation
+
+    social_distance_strictness: int
+        How strict from 0 to 4 the social distancing measures are. 
+        Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
+        Note that family contacts are not included in this reduction
+
+    restriction_decreasing: bool
+        If the social distancing will decrease the strictness during the restriction_duration period
+
+    nets: list of ig.Graph()
+        History of the network
+
+    n_test: int
+        Number of avaiable tests
+
+    policy_test: string
+        Test strategy
+    
+    contact_tracking_efficiency: float
+        The percentage of contacts successfully traced
+
+    Return
+    ------
+    report: dict
+        Counter of nodes status
+
+    G: ig.Graph()
+        The contact network
+        
+    &#34;&#34;&#34;
+    # generate new edges
+    if not restriction_duration:
+        if step_index &gt;= initial_day_restriction:
+            step_edges(G, 1 - (25 * social_distance_strictness / 100))
+        else:
+            step_edges(G, 1)
+    else:
+        if step_index &gt;= initial_day_restriction and step_index &lt; initial_day_restriction + restriction_duration:
+            if restriction_decreasing:
+                social_distance_strictness = compute_sd_reduction(step_index, initial_day_restriction, restriction_duration, social_distance_strictness)
+                step_edges(G, 1 - (25 * social_distance_strictness / 100))
+            else:
+                step_edges(G, 1 - (25 * social_distance_strictness / 100))
+        else:
+            step_edges(G, 1)
+    
+    # spread infection
+    step_spread(G, incubation_days, infection_duration, infection_rate)
+          
+    # make some test on nodes     
+    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracking_efficiency)
+
+    &#39;&#39;&#39;
+    # if avaiable, vaccinate some nodes
+    if step_index &gt;= initial_day_vaccination:
+        vacc_pool = [i for i in range(len(agent_status_report)) if agent_status_report[i] == &#34;S&#34;]
+        agent_status_report = step_vaccine(G, n_vacc, policy_vacc, vacc_pool, agent_status_report)
+    &#39;&#39;&#39;
+    agent_status_report = list()
+    for node in G.vs:
+        agent_status_report.append(node[&#34;agent_status&#34;])
+
+    return Counter(agent_status_report), G  
+
+def compute_sd_reduction(step_index, initial_day_restriction, restriction_duration, social_distance_strictness):
+    &#34;&#34;&#34;
+    Calculate the decreased social distance strictness index
+    
+    Parameters
+    ----------
+        
+    step_index : int 
+        index of the step
+    
+    initial_day_restriction: int
+        Day index from when social distancing measures are applied
+
+    restriction_duration: int
+        How many days the social distancing last. Use -1 to make the restriction last till the end of the simulation
+
+    social_distance_strictness: int
+        How strict from 0 to 4 the social distancing measures are. 
+        Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
+        Note that family contacts are not included in this reduction
+
+    Return
+    ------
+    social_distance_strictness: int
+        Updated value for social_distance_strictness
+        
+    &#34;&#34;&#34;
+    default_days = restriction_duration // social_distance_strictness
+    spare_days = restriction_duration - default_days * social_distance_strictness
+
+    strictness_sequence = list()
+
+    for i in range(social_distance_strictness):
+        updated_days = default_days
+        if spare_days &gt; 0:
+            updated_days += 1
+            spare_days -= 1
+        strictness_sequence.append(updated_days)
+
+
+    for i in range(1, len(strictness_sequence)):
+      strictness_sequence[i] += strictness_sequence[i - 1]
+
+
+    social_distance_reduction = None
+
+    for i in range(len(strictness_sequence)):
+      if step_index - initial_day_restriction &lt; strictness_sequence[i]:
+        social_distance_reduction = i
+        break
+
+    return social_distance_strictness - social_distance_reduction</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="ctns.steps.compute_sd_reduction"><code class="name flex">
+<span>def <span class="ident">compute_sd_reduction</span></span>(<span>step_index, initial_day_restriction, restriction_duration, social_distance_strictness)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the decreased social distance strictness index</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>step_index</code></strong> :&ensp;<code>int </code></dt>
+<dd>index of the step</dd>
+<dt><strong><code>initial_day_restriction</code></strong> :&ensp;<code>int</code></dt>
+<dd>Day index from when social distancing measures are applied</dd>
+<dt><strong><code>restriction_duration</code></strong> :&ensp;<code>int</code></dt>
+<dd>How many days the social distancing last. Use -1 to make the restriction last till the end of the simulation</dd>
+<dt><strong><code>social_distance_strictness</code></strong> :&ensp;<code>int</code></dt>
+<dd>How strict from 0 to 4 the social distancing measures are.
+Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
+Note that family contacts are not included in this reduction</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>social_distance_strictness: int
+Updated value for social_distance_strictness</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_sd_reduction(step_index, initial_day_restriction, restriction_duration, social_distance_strictness):
+    &#34;&#34;&#34;
+    Calculate the decreased social distance strictness index
+    
+    Parameters
+    ----------
+        
+    step_index : int 
+        index of the step
+    
+    initial_day_restriction: int
+        Day index from when social distancing measures are applied
+
+    restriction_duration: int
+        How many days the social distancing last. Use -1 to make the restriction last till the end of the simulation
+
+    social_distance_strictness: int
+        How strict from 0 to 4 the social distancing measures are. 
+        Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
+        Note that family contacts are not included in this reduction
+
+    Return
+    ------
+    social_distance_strictness: int
+        Updated value for social_distance_strictness
+        
+    &#34;&#34;&#34;
+    default_days = restriction_duration // social_distance_strictness
+    spare_days = restriction_duration - default_days * social_distance_strictness
+
+    strictness_sequence = list()
+
+    for i in range(social_distance_strictness):
+        updated_days = default_days
+        if spare_days &gt; 0:
+            updated_days += 1
+            spare_days -= 1
+        strictness_sequence.append(updated_days)
+
+
+    for i in range(1, len(strictness_sequence)):
+      strictness_sequence[i] += strictness_sequence[i - 1]
+
+
+    social_distance_reduction = None
+
+    for i in range(len(strictness_sequence)):
+      if step_index - initial_day_restriction &lt; strictness_sequence[i]:
+        social_distance_reduction = i
+        break
+
+    return social_distance_strictness - social_distance_reduction</code></pre>
+</details>
+</dd>
+<dt id="ctns.steps.generate_family_edges"><code class="name flex">
+<span>def <span class="ident">generate_family_edges</span></span>(<span>G)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate family edges. All edges between nodes of the same family are created</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
+<dd>The contact network</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_family_edges(G):
+    &#34;&#34;&#34;
+    Generate family edges. All edges between nodes of the same family are created
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    toAdd = []
+
+    for node in G.vs:
+        for edge in node[&#34;family_contacts&#34;]:
+            if G.vs[edge[0]][&#34;agent_status&#34;] != &#34;D&#34; \
+            and G.vs[edge[1]][&#34;agent_status&#34;] != &#34;D&#34; \
+            and not G.vs[edge[0]][&#34;quarantine&#34;] \
+            and not G.vs[edge[1]][&#34;quarantine&#34;]:
+            #and not (edge[0], edge[1]) in toAdd
+            #and not (edge[1], edge[0]) in toAdd:
+                toAdd.append(edge)
+
+    weights = np.random.randint(3, 8, len(toAdd))
+    G.add_edges(toAdd)
+    for (edge_index, i) in zip(G.get_eids(toAdd, directed = False), range(len(weights))):
+      G.es[edge_index][&#34;weight&#34;] = weights[i]
+      G.es[edge_index][&#34;category&#34;] = &#34;family_contacts&#34;  </code></pre>
+</details>
+</dd>
+<dt id="ctns.steps.generate_occfreq_edges"><code class="name flex">
+<span>def <span class="ident">generate_occfreq_edges</span></span>(<span>G, edge_category, restriction_value)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create edges from the node of type edge_category
+The number of edges is chosen according to the sociality of the node</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
+<dd>The contact network</dd>
+<dt><strong><code>edge_category</code></strong> :&ensp;<code>string</code></dt>
+<dd>Category of the edge attribute</dd>
+<dt><strong><code>restriction_value</code></strong> :&ensp;<code>float</code></dt>
+<dd>How many edges are dropped in proportion to normal condition?</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_occfreq_edges(G, edge_category, restriction_value):
+    &#34;&#34;&#34;
+    Create edges from the node of type edge_category
+    The number of edges is chosen according to the sociality of the node
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    edge_category: string
+        Category of the edge attribute
+    
+    restriction_value: float
+        How many edges are dropped in proportion to normal condition?
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    toAdd = []
+
+    for node in G.vs:
+        possible_edges = node[edge_category].copy()
+        random.shuffle(possible_edges)
+        tmp = int(len(possible_edges) / 3)
+        tmp2 = int(2 * len(possible_edges) / 3)
+        if node[&#34;sociality&#34;] == &#34;low&#34;:
+            n_edges = int(random.random() * tmp)
+        if node[&#34;sociality&#34;] == &#34;medium&#34;:
+            n_edges = tmp + int(random.random() * (tmp2 - tmp))
+        if node[&#34;sociality&#34;] == &#34;high&#34;:
+            n_edges = tmp2 + int(random.random() * (len(possible_edges) + 1 - tmp2))
+        n_edges = int(n_edges * restriction_value)
+
+        for i in range (0, n_edges):
+            edge = possible_edges[i]
+            if G.vs[edge[0]][&#34;agent_status&#34;] != &#34;D&#34; \
+            and G.vs[edge[1]][&#34;agent_status&#34;] != &#34;D&#34; \
+            and not G.vs[edge[0]][&#34;quarantine&#34;] \
+            and not G.vs[edge[1]][&#34;quarantine&#34;] \
+            and not G[edge[0], edge[1]]:
+            #and not (edge[0], edge[1]) in toAdd \
+            #and not (edge[1], edge[0]) in toAdd:
+                toAdd.append(edge)
+
+    weights = np.random.randint(1, 6, len(toAdd))
+    G.add_edges(toAdd)
+    for (edge_index, i) in zip(G.get_eids(toAdd, directed = False), range(len(weights))):
+      G.es[edge_index][&#34;weight&#34;] = weights[i]
+      G.es[edge_index][&#34;category&#34;]= edge_category  </code></pre>
+</details>
+</dd>
+<dt id="ctns.steps.generate_random_edges"><code class="name flex">
+<span>def <span class="ident">generate_random_edges</span></span>(<span>G, number_of_random_edges, restriction_value)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create number_of_random_edges random edges in the contact network</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
+<dd>The contact network</dd>
+<dt><strong><code>number_of_random_edges</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of edges to create</dd>
+<dt><strong><code>restriction_value</code></strong> :&ensp;<code>float</code></dt>
+<dd>How many edges are dropped in proportion to normal condition?</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_random_edges(G, number_of_random_edges, restriction_value):
+    &#34;&#34;&#34;
+    Create number_of_random_edges random edges in the contact network
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+        
+    number_of_random_edges : int
+        Number of edges to create
+    
+    restriction_value: float
+        How many edges are dropped in proportion to normal condition?
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    toAdd = []
+    number_of_random_edges = int(number_of_random_edges * restriction_value)
+    edge_list = np.random.randint(0, len(list(G.vs)) - 1, 2 * number_of_random_edges)
+    for i in range (0, 2 * number_of_random_edges, 2):
+        source = edge_list[i]
+        target = edge_list[i + 1]
+        if not G[source, target] \
+        and source != target \
+        and G.vs[source][&#34;agent_status&#34;] != &#34;D&#34; \
+        and G.vs[target][&#34;agent_status&#34;] != &#34;D&#34; \
+        and not G.vs[source][&#34;quarantine&#34;] \
+        and not G.vs[target][&#34;quarantine&#34;] \
+        and not G[source, target]:
+        #and not (source, target) in toAdd \
+        #and not (target, source) in toAdd:
+            toAdd.append((source, target))
+
+    G.add_edges(toAdd)
+    for edge_index in G.get_eids(toAdd, directed = False):
+      G.es[edge_index][&#34;weight&#34;] = 1
+      G.es[edge_index][&#34;category&#34;]= &#34;random_contacts&#34;  </code></pre>
+</details>
+</dd>
+<dt id="ctns.steps.step"><code class="name flex">
+<span>def <span class="ident">step</span></span>(<span>G, step_index, incubation_days, infection_duration, infection_rate, initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Advance the simulation of one step</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
+<dd>The contact network</dd>
+<dt><strong><code>step_index</code></strong> :&ensp;<code>int </code></dt>
+<dd>index of the step</dd>
+<dt><strong><code>incubation_days</code></strong> :&ensp;<code>int</code></dt>
+<dd>Average number of days where the patient is not infective</dd>
+<dt><strong><code>infection_duration</code></strong> :&ensp;<code>int</code></dt>
+<dd>Average total duration of the disease</dd>
+<dt><strong><code>infection_rate</code></strong> :&ensp;<code>float</code></dt>
+<dd>Value of the infection_rate rate for the disease in the network</dd>
+<dt><strong><code>initial_day_restriction</code></strong> :&ensp;<code>int</code></dt>
+<dd>Day index from when social distancing measures are applied</dd>
+<dt><strong><code>restriction_duration</code></strong> :&ensp;<code>int</code></dt>
+<dd>How many days the social distancing last. Use -1 to make the restriction last till the end of the simulation</dd>
+<dt><strong><code>social_distance_strictness</code></strong> :&ensp;<code>int</code></dt>
+<dd>How strict from 0 to 4 the social distancing measures are.
+Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
+Note that family contacts are not included in this reduction</dd>
+<dt><strong><code>restriction_decreasing</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If the social distancing will decrease the strictness during the restriction_duration period</dd>
+<dt><strong><code>nets</code></strong> :&ensp;<code>list</code> of <code>ig.Graph()</code></dt>
+<dd>History of the network</dd>
+<dt><strong><code>n_test</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of avaiable tests</dd>
+<dt><strong><code>policy_test</code></strong> :&ensp;<code>string</code></dt>
+<dd>Test strategy</dd>
+<dt><strong><code>contact_tracking_efficiency</code></strong> :&ensp;<code>float</code></dt>
+<dd>The percentage of contacts successfully traced</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>report: dict
+Counter of nodes status</p>
+<p>G: ig.Graph()
+The contact network</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def step(G, step_index, incubation_days, infection_duration, infection_rate,
+         initial_day_restriction, restriction_duration, social_distance_strictness,
+         restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency):
+    &#34;&#34;&#34;
+    Advance the simulation of one step
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+        
+    step_index : int 
+        index of the step
+
+    incubation_days: int
+        Average number of days where the patient is not infective
+
+    infection_duration: int
+        Average total duration of the disease
+    
+    infection_rate: float
+        Value of the infection_rate rate for the disease in the network
+    
+    initial_day_restriction: int
+        Day index from when social distancing measures are applied
+
+    restriction_duration: int
+        How many days the social distancing last. Use -1 to make the restriction last till the end of the simulation
+
+    social_distance_strictness: int
+        How strict from 0 to 4 the social distancing measures are. 
+        Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
+        Note that family contacts are not included in this reduction
+
+    restriction_decreasing: bool
+        If the social distancing will decrease the strictness during the restriction_duration period
+
+    nets: list of ig.Graph()
+        History of the network
+
+    n_test: int
+        Number of avaiable tests
+
+    policy_test: string
+        Test strategy
+    
+    contact_tracking_efficiency: float
+        The percentage of contacts successfully traced
+
+    Return
+    ------
+    report: dict
+        Counter of nodes status
+
+    G: ig.Graph()
+        The contact network
+        
+    &#34;&#34;&#34;
+    # generate new edges
+    if not restriction_duration:
+        if step_index &gt;= initial_day_restriction:
+            step_edges(G, 1 - (25 * social_distance_strictness / 100))
+        else:
+            step_edges(G, 1)
+    else:
+        if step_index &gt;= initial_day_restriction and step_index &lt; initial_day_restriction + restriction_duration:
+            if restriction_decreasing:
+                social_distance_strictness = compute_sd_reduction(step_index, initial_day_restriction, restriction_duration, social_distance_strictness)
+                step_edges(G, 1 - (25 * social_distance_strictness / 100))
+            else:
+                step_edges(G, 1 - (25 * social_distance_strictness / 100))
+        else:
+            step_edges(G, 1)
+    
+    # spread infection
+    step_spread(G, incubation_days, infection_duration, infection_rate)
+          
+    # make some test on nodes     
+    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracking_efficiency)
+
+    &#39;&#39;&#39;
+    # if avaiable, vaccinate some nodes
+    if step_index &gt;= initial_day_vaccination:
+        vacc_pool = [i for i in range(len(agent_status_report)) if agent_status_report[i] == &#34;S&#34;]
+        agent_status_report = step_vaccine(G, n_vacc, policy_vacc, vacc_pool, agent_status_report)
+    &#39;&#39;&#39;
+    agent_status_report = list()
+    for node in G.vs:
+        agent_status_report.append(node[&#34;agent_status&#34;])
+
+    return Counter(agent_status_report), G  </code></pre>
+</details>
+</dd>
+<dt id="ctns.steps.step_edges"><code class="name flex">
+<span>def <span class="ident">step_edges</span></span>(<span>G, restriction_value)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Remove old edges
+Create new edges</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
+<dd>The contact network</dd>
+<dt><strong><code>restriction_value</code></strong> :&ensp;<code>float</code></dt>
+<dd>How many edges are dropped in proportion to normal condition?</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def step_edges(G, restriction_value):
+    &#34;&#34;&#34;
+    Remove old edges
+    Create new edges
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    restriction_value: float
+        How many edges are dropped in proportion to normal condition?
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    
+    G.delete_edges(list(G.es))
+
+    generate_family_edges(G)
+
+    generate_occfreq_edges(G, &#34;frequent_contacts&#34;, restriction_value)
+    generate_occfreq_edges(G, &#34;occasional_contacts&#34;, restriction_value)
+
+    random_contact_total = len(list(G.vs)) + random.random() * (7 * len(list(G.vs)) - len(list(G.vs)))
+    generate_random_edges(G, random_contact_total, restriction_value)
+
+    # since edge generation produce a multigraph but a single edge has attributes as wanted,
+    # all other edges are removed. This produce a simple graph
+    # this operation is way much faster than checking befor adding new edge
+    
+    toRemove = list()
+    for edge in G.es:
+        if edge[&#34;weight&#34;] == None:
+            toRemove.append(edge)
+    G.delete_edges(toRemove)  </code></pre>
+</details>
+</dd>
+<dt id="ctns.steps.step_spread"><code class="name flex">
+<span>def <span class="ident">step_spread</span></span>(<span>G, incubation_days, infection_duration, infection_rate)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Make the infection spread across the network</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
+<dd>The contact network</dd>
+<dt><strong><code>incubation_days</code></strong> :&ensp;<code>int</code></dt>
+<dd>Average number of days where the patient is not infective</dd>
+<dt><strong><code>infection_duration</code></strong> :&ensp;<code>int</code></dt>
+<dd>Average total duration of the disease</dd>
+<dt><strong><code>infection_rate</code></strong> :&ensp;<code>float</code></dt>
+<dd>Value of the infection_rate rate for the disease in the network</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def step_spread(G, incubation_days, infection_duration, infection_rate):
+    &#34;&#34;&#34;
+    Make the infection spread across the network
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    incubation_days: int
+        Average number of days where the patient is not infective
+
+    infection_duration: int
+        Average total duration of the disease
+    
+    infection_rate: float
+        Value of the infection_rate rate for the disease in the network
+
+    Return
+    ------
+    None
+    
+    &#34;&#34;&#34;
+    for node in G.vs:
+        # update parameters if node is infected
+        if node[&#34;infected&#34;] == True:
+            node[&#34;days_from_infection&#34;] += 1
+            if node[&#34;days_from_infection&#34;] == infection_duration:
+                # if infection is over, it will be dead of recovered
+                node[&#34;agent_status&#34;] = np.random.choice([&#34;R&#34;, &#34;D&#34;], p = (1 - node[&#34;death_rate&#34;], node[&#34;death_rate&#34;]))
+                node[&#34;infected&#34;] = False
+                node[&#34;symptoms&#34;] = list()
+                node[&#34;days_from_infection&#34;] = 0
+                node[&#34;needs_IC&#34;] = False
+                if node[&#34;agent_status&#34;] == &#34;D&#34;:
+                    node[&#34;quarantine&#34;] = 0
+                    node[&#34;test_result&#34;] = - 1
+                
+            # if it is still infective, spread the infection with his contacts
+            if node[&#34;agent_status&#34;] == &#34;I&#34;:
+                for contact in G.neighborhood(node)[1:]:
+                    if G.vs[contact][&#34;agent_status&#34;] == &#34;S&#34;:
+                        prob = infection_rate * G[node, contact] # access to the weight of the edge
+                        # has the new node been infected?
+                        G.vs[contact][&#34;agent_status&#34;] = np.random.choice([&#34;S&#34;, &#34;E&#34;], p = (1 - prob, prob))
+                        if G.vs[contact][&#34;agent_status&#34;] == &#34;E&#34;:
+                            G.vs[contact][&#34;infected&#34;] = True
+                            G.vs[contact][&#34;days_from_infection&#34;] = 1
+
+            # if the node become I, pick some symptoms
+            if node[&#34;agent_status&#34;] == &#34;E&#34; and node[&#34;days_from_infection&#34;] == incubation_days:
+                node[&#34;agent_status&#34;] = &#34;I&#34;
+                #if mild case
+                case = random.uniform(0, 1)
+                if case &lt; 0.8:
+                    if case &lt; 0.05:
+                        node[&#34;symptoms&#34;].append(&#34;Loss of taste or smell&#34;)
+                    if case &lt; 0.2:
+                        node[&#34;symptoms&#34;].append(&#34;Fever&#34;)
+                    if case &lt; 0.2:
+                        node[&#34;symptoms&#34;].append(&#34;Cough&#34;)
+                    if case &lt; 0.2:
+                        node[&#34;symptoms&#34;].append(&#34;Tiredness&#34;)
+                # if severe
+                else:
+                    if case &lt; 0.99:
+                        node[&#34;symptoms&#34;].append(&#34;Fever&#34;)
+                    if case &lt; 0.7:
+                        node[&#34;symptoms&#34;].append(&#34;Tiredness&#34;)
+                    if case &lt; 0.6:
+                        node[&#34;symptoms&#34;].append(&#34;Cough&#34;)
+                    if case &lt; 0.3:
+                        node[&#34;symptoms&#34;].append(&#34;Dyspnea&#34;)
+                
+                if random.uniform(0, 1) &lt; 0.02:
+                    node[&#34;needs_IC&#34;] = True</code></pre>
+</details>
+</dd>
+<dt id="ctns.steps.step_test"><code class="name flex">
+<span>def <span class="ident">step_test</span></span>(<span>G, nets, incubation_days, n_new_test, policy_test, contact_tracking_efficiency)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test some nodes of the network and put the in quarantine if needed</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
+<dd>The contact network</dd>
+<dt><strong><code>nets</code></strong> :&ensp;<code>list</code> of <code>ig.Graph()</code></dt>
+<dd>History of the network</dd>
+<dt><strong><code>incubation_days</code></strong> :&ensp;<code>int</code></dt>
+<dd>Average number of days where the patient is not infective</dd>
+<dt><strong><code>n_new_test</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of new avaiable tests</dd>
+<dt><strong><code>policy_test</code></strong> :&ensp;<code>string</code></dt>
+<dd>Test strategy
+Can be ["Random, Degree Centrality, Betweenness Centrality"]</dd>
+<dt><strong><code>contact_tracking_efficiency</code></strong> :&ensp;<code>float</code></dt>
+<dd>The percentage of contacts successfully traced</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracking_efficiency):
+    &#34;&#34;&#34;
+    Test some nodes of the network and put the in quarantine if needed
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    nets: list of ig.Graph()
+        History of the network
+    
+    incubation_days: int
+        Average number of days where the patient is not infective
+
+    n_new_test: int
+        Number of new avaiable tests
+
+    policy_test: string
+        Test strategy
+        Can be [&#34;Random, Degree Centrality, Betweenness Centrality&#34;]
+    
+    contact_tracking_efficiency: float
+        The percentage of contacts successfully traced
+
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+
+    # create pool of nodes to test
+    high_priority_test_pool = set()
+    low_priority_test_pool = set()
+    for node in G.vs:
+        # update quarantine
+        if node[&#34;quarantine&#34;] &gt; 0:
+            node[&#34;quarantine&#34;] -= 1
+            # if node has been found positive and quarantine is over, re-test the node
+            if node[&#34;quarantine&#34;] == 0 and node[&#34;test_result&#34;] == 1:
+                high_priority_test_pool.add(node.index)
+        # update test validity
+        if node[&#34;test_validity&#34;] &gt; 0:
+            node[&#34;test_validity&#34;] -= 1
+        # test also detect if the node is recovered (sierological test)
+        # if node is not dead, if test validity is expired, if node is not a known recovered, add to low priority test pool
+        if node[&#34;agent_status&#34;] != &#34;D&#34; and node[&#34;test_validity&#34;] &lt;= 0 \
+         and not (node[&#34;test_result&#34;] == 0 and node[&#34;agent_status&#34;] == &#34;R&#34;):
+            low_priority_test_pool.add(node.index)
+
+    low_priority_test_pool = low_priority_test_pool - high_priority_test_pool
+    found_positive = set()
+    #cannot directly put nodes in a set cause node object are not supported
+    high_priority_test_pool = [G.vs[i] for i in high_priority_test_pool]
+    low_priority_test_pool = [G.vs[i] for i in low_priority_test_pool]
+    for node in high_priority_test_pool:
+        if node[&#34;infected&#34;]:
+            node[&#34;test_result&#34;] = 1
+            node[&#34;quarantine&#34;] = 14
+            node[&#34;test_validity&#34;] = 14
+            found_positive.add(node.index)
+        else:
+            node[&#34;test_result&#34;] = 0
+            node[&#34;test_validity&#34;] = incubation_days
+
+    if policy_test == &#34;Random&#34; and n_new_test &gt; 0:
+        to_test = random.sample(low_priority_test_pool, min(len(low_priority_test_pool), n_new_test))
+        for node in to_test:
+            if node[&#34;infected&#34;]:
+                node[&#34;test_result&#34;] = 1
+                node[&#34;quarantine&#34;] = 14
+                node[&#34;test_validity&#34;] = 14
+                found_positive.add(node.index)
+            else:
+                node[&#34;test_result&#34;] = 0
+                node[&#34;test_validity&#34;] = incubation_days
+
+    if policy_test == &#34;Degree Centrality&#34; and n_new_test &gt; 0:
+        low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
+        degree_results = G.strength(low_priority_test_pool_index, weights = &#34;weight&#34;)
+        zipped_lists = zip(degree_results, low_priority_test_pool)
+        sorted_pairs = sorted(zipped_lists, reverse = True)
+        tuples = zip(*sorted_pairs)
+        _, sorted_nodes = [ list(tuple) for tuple in  tuples]
+        for i in range(min(n_new_test, len(low_priority_test_pool))):
+            node = sorted_nodes[i]
+            if node[&#34;infected&#34;]:
+                node[&#34;test_result&#34;] = 1
+                node[&#34;quarantine&#34;] = 14
+                node[&#34;test_validity&#34;] = 14
+                found_positive.add(node.index)
+            else:
+                node[&#34;test_result&#34;] = 0
+                node[&#34;test_validity&#34;] = incubation_days
+
+    if policy_test == &#34;Betweenness Centrality&#34; and n_new_test &gt; 0:
+        low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
+        betweenness_results = G.betweenness(low_priority_test_pool_index, 
+                                            directed = False, weights = &#34;weight&#34;,
+                                            cutoff = None)
+        zipped_lists = zip(betweenness_results, low_priority_test_pool)
+        sorted_pairs = sorted(zipped_lists, reverse = True)
+        tuples = zip(*sorted_pairs)
+        _, sorted_nodes = [ list(tuple) for tuple in  tuples]
+        for i in range(min(n_new_test, len(low_priority_test_pool))):
+            node = sorted_nodes[i]
+            if node[&#34;infected&#34;]:
+                node[&#34;test_result&#34;] = 1
+                node[&#34;quarantine&#34;] = 14
+                node[&#34;test_validity&#34;] = 14
+                found_positive.add(node.index)
+            else:
+                node[&#34;test_result&#34;] = 0
+                node[&#34;test_validity&#34;] = incubation_days
+    
+    # to_quarantine will contain family contacts (quarantine 100%), 
+    # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficency
+
+    if len(found_positive) &gt; 0:
+        to_quarantine = set()
+        possibly_quarantine = set()
+        # track to max 14 days before
+        for i in range(1, min(len(nets) + 1, 15)):
+            net = nets[-i]
+            for edge in net.es:
+                if edge[&#34;category&#34;] == &#34;family_contacts&#34; \
+                and (edge.source in found_positive or edge.target in found_positive):
+                    if edge.source in found_positive:
+                        to_quarantine.add(G.vs[edge.target].index)
+                    else:
+                        to_quarantine.add(G.vs[edge.source].index)
+                else:
+                    if edge.source in found_positive:
+                        possibly_quarantine.add(G.vs[edge.target].index)
+                    if edge.target in found_positive:
+                        possibly_quarantine.add(G.vs[edge.source].index)
+        # set differenct to remove double contacts
+
+        possibly_quarantine = random.sample(possibly_quarantine - to_quarantine, int(len(possibly_quarantine) * contact_tracking_efficiency))
+
+        to_quarantine = list(to_quarantine) + possibly_quarantine
+
+        to_quarantine = [G.vs[i] for i in to_quarantine]
+
+        # put them in quarantine
+        # Need test?
+        if to_quarantine != list() and to_quarantine != None:
+            for node in to_quarantine:
+                node[&#34;quarantine&#34;] = 14  </code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ctns" href="index.html">ctns</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="ctns.steps.compute_sd_reduction" href="#ctns.steps.compute_sd_reduction">compute_sd_reduction</a></code></li>
+<li><code><a title="ctns.steps.generate_family_edges" href="#ctns.steps.generate_family_edges">generate_family_edges</a></code></li>
+<li><code><a title="ctns.steps.generate_occfreq_edges" href="#ctns.steps.generate_occfreq_edges">generate_occfreq_edges</a></code></li>
+<li><code><a title="ctns.steps.generate_random_edges" href="#ctns.steps.generate_random_edges">generate_random_edges</a></code></li>
+<li><code><a title="ctns.steps.step" href="#ctns.steps.step">step</a></code></li>
+<li><code><a title="ctns.steps.step_edges" href="#ctns.steps.step_edges">step_edges</a></code></li>
+<li><code><a title="ctns.steps.step_spread" href="#ctns.steps.step_spread">step_spread</a></code></li>
+<li><code><a title="ctns.steps.step_test" href="#ctns.steps.step_test">step_test</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

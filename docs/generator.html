@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>ctns.generator API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ctns.generator</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import igraph as ig
+import random, math
+import numpy as np
+from ctns.utility import fix_distribution_node_number
+
+def generate_node_list_attribute(G, attribute_name, distribution):
+    &#34;&#34;&#34;
+    Add to each node a list named attribute_name containing edge representing the
+    possible social contanct to each node.
+    This list is used to draw the new edges for the node in the step function
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    attribute_name: string
+        Name of the node attribute
+
+    distribution: list of int
+        Distribution of the &#34;community&#34; dimension
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    # extract node list and randomize
+    node_list = list(G.vs)
+    random.shuffle(node_list)
+
+    # iterate over community
+    for element in distribution:
+        community_nodes = list()
+        # extract community members
+        for i in range(0, element):
+            community_nodes.append(node_list.pop())
+        # for each node, pick a random number (proportional to sociality) of 
+        # community member and create a possible link
+        for node in community_nodes:
+            tmp = int(math.ceil(len(community_nodes) / 3))
+            tmp2 = int(math.ceil(2 * len(community_nodes) / 3))
+            if node[&#34;sociality&#34;] == &#34;low&#34;:
+                n_contact = 1 + int(random.random() * (tmp - 1))
+            if node[&#34;sociality&#34;] == &#34;medium&#34;:
+                n_contact = tmp + int(random.random() * (tmp2 - tmp))
+            if node[&#34;sociality&#34;] == &#34;high&#34;:
+                n_contact = tmp2 + int(random.random() * (len(community_nodes) + 1 - tmp2))
+
+            targets = random.sample(community_nodes, n_contact)
+            for target in targets:
+                if target != node and not (node.index, target.index) in node[attribute_name]:
+                    node[attribute_name].append((node.index, target.index))
+                    target[attribute_name].append((target.index, node.index))  
+
+def generate_node_family_attribute(G, distribution):
+    &#34;&#34;&#34;
+    Add to each node a list named family_contacts containing edge representing the
+    interaction with family and a family ID.
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    distribution: list of int
+        Distribution of the &#34;community&#34; dimension
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    node_counter = 0;
+    for i in range(len(distribution)):
+        family_nodes = list(range(node_counter, node_counter + distribution[i]))
+        node_counter = node_counter + distribution[i]
+        # for ech node in the family, generate a complete graph with other family members
+        for source in family_nodes:
+            G.vs[source][&#34;family_id&#34;] = i
+            for target in family_nodes:
+                if source != target:
+                    G.vs[source][&#34;family_contacts&#34;].append((source, target))  
+
+def generate_network(n_of_families):
+    &#34;&#34;&#34;
+    Generte contact network nodes
+    
+    Parameters
+    ----------
+    n_of_families: int
+        Number of families in the network
+        
+    Return
+    ------
+    G: ig.Graph()
+        The contact network
+
+    &#34;&#34;&#34;
+
+    #DISTRIBUTIONS
+    # family distribution
+    family_distribution = np.random.normal(2, 2, n_of_families).round().astype(int)
+    family_distribution = [x if x &gt; 1 else 1 for x in family_distribution]
+
+    number_of_nodes = np.sum(family_distribution)
+
+
+    # frequent contact distribution
+    frequent_contact_distribution = np.random.normal(12, 3, n_of_families).round().astype(int)
+    frequent_contact_distribution = list(frequent_contact_distribution[frequent_contact_distribution &gt;= 0])
+
+    # refine to have sum = node number
+    frequent_contact_distribution = fix_distribution_node_number(frequent_contact_distribution, number_of_nodes)
+
+
+    # occasional contact distribution
+    occasional_contact_distribution = np.random.normal(24, 6, n_of_families).round().astype(int)
+    occasional_contact_distribution = list(occasional_contact_distribution[occasional_contact_distribution &gt;= 0])
+
+    # refine to have sum = node number
+    occasional_contact_distribution = fix_distribution_node_number(occasional_contact_distribution, number_of_nodes)
+
+    # random edge distribution -&gt; see step function
+
+    # GENERATE NODES
+    G = ig.Graph()
+    G.add_vertices(number_of_nodes)
+    for node in G.vs:
+        node[&#34;sex&#34;] = np.random.choice([&#34;man&#34;, &#34;woman&#34;], p = [0.487, 0.513])
+        # age is the represented by the lower bound, so if age is 20, the person has age [20-29]
+        node[&#34;age&#34;] = np.random.choice([0, 10, 20, 30, 40, 50, 60, 70, 80, 90], 
+            p = [0.084, 0.096, 0.102, 0.117, 0.153, 0.155, 0.122, 0.099, 0.059, 0.013]) 
+
+        node[&#34;family_id&#34;] = -1
+        node[&#34;family_contacts&#34;] = list()
+        node[&#34;frequent_contacts&#34;] = list()
+        node[&#34;occasional_contacts&#34;] = list()
+
+        # setting sociality
+        if node[&#34;age&#34;] &lt; 6:
+            node[&#34;sociality&#34;] = &#34;low&#34;
+            node[&#34;pre_existing_conditions&#34;] = 0
+        elif node[&#34;age&#34;] &gt; 70:
+            node[&#34;sociality&#34;] = np.random.choice(
+                [&#39;low&#39;, &#39;medium&#39;, &#39;high&#39;], p=[0.75, 0.23, 0.02])
+            node[&#34;pre_existing_conditions&#34;] = np.random.choice(
+                [0, 1, 2, 3], p=[0.1, 0.4, 0.3, 0.2])
+        else:
+            node[&#34;sociality&#34;] = np.random.choice(
+                [&#39;low&#39;, &#39;medium&#39;, &#39;high&#39;], p=[0.6, 0.3, 0.1])
+            node[&#34;pre_existing_conditions&#34;] = np.random.choice(
+                [0, 1, 2, 3], p=[0.6, 0.2, 0.1, 0.1])
+        
+        if node[&#34;age&#34;] &lt; 10:
+            node[&#34;death_rate&#34;] = 0.002
+        elif node[&#34;age&#34;] &lt; 20:
+            node[&#34;death_rate&#34;] = 0.001
+        elif node[&#34;age&#34;] &lt; 30:
+            node[&#34;death_rate&#34;] = 0.001
+        elif node[&#34;age&#34;] &lt; 40:
+            node[&#34;death_rate&#34;] = 0.004
+        elif node[&#34;age&#34;] &lt; 50:
+            node[&#34;death_rate&#34;] = 0.009
+        elif node[&#34;age&#34;] &lt; 60:
+            node[&#34;death_rate&#34;] = 0.026
+        elif node[&#34;age&#34;] &lt; 70:
+            node[&#34;death_rate&#34;] = 0.10
+        elif node[&#34;age&#34;] &lt; 80:
+            node[&#34;death_rate&#34;] = 0.249
+        elif node[&#34;age&#34;] &lt; 90:
+            node[&#34;death_rate&#34;] = 0.308
+        elif node[&#34;age&#34;] &lt; 100:
+            node[&#34;death_rate&#34;] = 0.261
+
+        node[&#34;agent_status&#34;] = &#39;S&#39;
+        node[&#34;infected&#34;] = False
+        node[&#34;days_from_infection&#34;] = 0
+        node[&#34;probability_of_being_infected&#34;] = 0.0
+        node[&#34;quarantine&#34;] = 0
+        node[&#34;test_validity&#34;] = 0
+        node[&#34;test_result&#34;] = -1
+        node[&#34;symptoms&#34;] = list()
+        node[&#34;needs_IC&#34;] = False
+
+    # GENERATE NODE LIST ATTRIBUTES
+    # generate families contact attribute in nodes
+    generate_node_family_attribute(G, family_distribution)
+    # generate frequent contact attribute in nodes
+    generate_node_list_attribute(G, &#34;frequent_contacts&#34;, frequent_contact_distribution)
+    # generate occasional contact attribute in nodes
+    generate_node_list_attribute(G, &#34;occasional_contacts&#34;, occasional_contact_distribution)
+
+    return G  
+
+def init_infection(G, n_initial_infected_nodes):
+    &#34;&#34;&#34;
+    Make random nodes infected in the network
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    n_initial_infected_nodes: int
+        Number of infected nodes to put on the network
+
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    for node in random.sample(list(G.vs), n_initial_infected_nodes):
+        node[&#34;agent_status&#34;] = &#34;E&#34;
+        node[&#34;infected&#34;] = True
+        node[&#34;days_from_infection&#34;] = 1</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="ctns.generator.generate_network"><code class="name flex">
+<span>def <span class="ident">generate_network</span></span>(<span>n_of_families)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generte contact network nodes</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>n_of_families</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of families in the network</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>G: ig.Graph()
+The contact network</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_network(n_of_families):
+    &#34;&#34;&#34;
+    Generte contact network nodes
+    
+    Parameters
+    ----------
+    n_of_families: int
+        Number of families in the network
+        
+    Return
+    ------
+    G: ig.Graph()
+        The contact network
+
+    &#34;&#34;&#34;
+
+    #DISTRIBUTIONS
+    # family distribution
+    family_distribution = np.random.normal(2, 2, n_of_families).round().astype(int)
+    family_distribution = [x if x &gt; 1 else 1 for x in family_distribution]
+
+    number_of_nodes = np.sum(family_distribution)
+
+
+    # frequent contact distribution
+    frequent_contact_distribution = np.random.normal(12, 3, n_of_families).round().astype(int)
+    frequent_contact_distribution = list(frequent_contact_distribution[frequent_contact_distribution &gt;= 0])
+
+    # refine to have sum = node number
+    frequent_contact_distribution = fix_distribution_node_number(frequent_contact_distribution, number_of_nodes)
+
+
+    # occasional contact distribution
+    occasional_contact_distribution = np.random.normal(24, 6, n_of_families).round().astype(int)
+    occasional_contact_distribution = list(occasional_contact_distribution[occasional_contact_distribution &gt;= 0])
+
+    # refine to have sum = node number
+    occasional_contact_distribution = fix_distribution_node_number(occasional_contact_distribution, number_of_nodes)
+
+    # random edge distribution -&gt; see step function
+
+    # GENERATE NODES
+    G = ig.Graph()
+    G.add_vertices(number_of_nodes)
+    for node in G.vs:
+        node[&#34;sex&#34;] = np.random.choice([&#34;man&#34;, &#34;woman&#34;], p = [0.487, 0.513])
+        # age is the represented by the lower bound, so if age is 20, the person has age [20-29]
+        node[&#34;age&#34;] = np.random.choice([0, 10, 20, 30, 40, 50, 60, 70, 80, 90], 
+            p = [0.084, 0.096, 0.102, 0.117, 0.153, 0.155, 0.122, 0.099, 0.059, 0.013]) 
+
+        node[&#34;family_id&#34;] = -1
+        node[&#34;family_contacts&#34;] = list()
+        node[&#34;frequent_contacts&#34;] = list()
+        node[&#34;occasional_contacts&#34;] = list()
+
+        # setting sociality
+        if node[&#34;age&#34;] &lt; 6:
+            node[&#34;sociality&#34;] = &#34;low&#34;
+            node[&#34;pre_existing_conditions&#34;] = 0
+        elif node[&#34;age&#34;] &gt; 70:
+            node[&#34;sociality&#34;] = np.random.choice(
+                [&#39;low&#39;, &#39;medium&#39;, &#39;high&#39;], p=[0.75, 0.23, 0.02])
+            node[&#34;pre_existing_conditions&#34;] = np.random.choice(
+                [0, 1, 2, 3], p=[0.1, 0.4, 0.3, 0.2])
+        else:
+            node[&#34;sociality&#34;] = np.random.choice(
+                [&#39;low&#39;, &#39;medium&#39;, &#39;high&#39;], p=[0.6, 0.3, 0.1])
+            node[&#34;pre_existing_conditions&#34;] = np.random.choice(
+                [0, 1, 2, 3], p=[0.6, 0.2, 0.1, 0.1])
+        
+        if node[&#34;age&#34;] &lt; 10:
+            node[&#34;death_rate&#34;] = 0.002
+        elif node[&#34;age&#34;] &lt; 20:
+            node[&#34;death_rate&#34;] = 0.001
+        elif node[&#34;age&#34;] &lt; 30:
+            node[&#34;death_rate&#34;] = 0.001
+        elif node[&#34;age&#34;] &lt; 40:
+            node[&#34;death_rate&#34;] = 0.004
+        elif node[&#34;age&#34;] &lt; 50:
+            node[&#34;death_rate&#34;] = 0.009
+        elif node[&#34;age&#34;] &lt; 60:
+            node[&#34;death_rate&#34;] = 0.026
+        elif node[&#34;age&#34;] &lt; 70:
+            node[&#34;death_rate&#34;] = 0.10
+        elif node[&#34;age&#34;] &lt; 80:
+            node[&#34;death_rate&#34;] = 0.249
+        elif node[&#34;age&#34;] &lt; 90:
+            node[&#34;death_rate&#34;] = 0.308
+        elif node[&#34;age&#34;] &lt; 100:
+            node[&#34;death_rate&#34;] = 0.261
+
+        node[&#34;agent_status&#34;] = &#39;S&#39;
+        node[&#34;infected&#34;] = False
+        node[&#34;days_from_infection&#34;] = 0
+        node[&#34;probability_of_being_infected&#34;] = 0.0
+        node[&#34;quarantine&#34;] = 0
+        node[&#34;test_validity&#34;] = 0
+        node[&#34;test_result&#34;] = -1
+        node[&#34;symptoms&#34;] = list()
+        node[&#34;needs_IC&#34;] = False
+
+    # GENERATE NODE LIST ATTRIBUTES
+    # generate families contact attribute in nodes
+    generate_node_family_attribute(G, family_distribution)
+    # generate frequent contact attribute in nodes
+    generate_node_list_attribute(G, &#34;frequent_contacts&#34;, frequent_contact_distribution)
+    # generate occasional contact attribute in nodes
+    generate_node_list_attribute(G, &#34;occasional_contacts&#34;, occasional_contact_distribution)
+
+    return G  </code></pre>
+</details>
+</dd>
+<dt id="ctns.generator.generate_node_family_attribute"><code class="name flex">
+<span>def <span class="ident">generate_node_family_attribute</span></span>(<span>G, distribution)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add to each node a list named family_contacts containing edge representing the
+interaction with family and a family ID.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
+<dd>The contact network</dd>
+<dt><strong><code>distribution</code></strong> :&ensp;<code>list</code> of <code>int</code></dt>
+<dd>Distribution of the "community" dimension</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_node_family_attribute(G, distribution):
+    &#34;&#34;&#34;
+    Add to each node a list named family_contacts containing edge representing the
+    interaction with family and a family ID.
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    distribution: list of int
+        Distribution of the &#34;community&#34; dimension
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    node_counter = 0;
+    for i in range(len(distribution)):
+        family_nodes = list(range(node_counter, node_counter + distribution[i]))
+        node_counter = node_counter + distribution[i]
+        # for ech node in the family, generate a complete graph with other family members
+        for source in family_nodes:
+            G.vs[source][&#34;family_id&#34;] = i
+            for target in family_nodes:
+                if source != target:
+                    G.vs[source][&#34;family_contacts&#34;].append((source, target))  </code></pre>
+</details>
+</dd>
+<dt id="ctns.generator.generate_node_list_attribute"><code class="name flex">
+<span>def <span class="ident">generate_node_list_attribute</span></span>(<span>G, attribute_name, distribution)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add to each node a list named attribute_name containing edge representing the
+possible social contanct to each node.
+This list is used to draw the new edges for the node in the step function</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
+<dd>The contact network</dd>
+<dt><strong><code>attribute_name</code></strong> :&ensp;<code>string</code></dt>
+<dd>Name of the node attribute</dd>
+<dt><strong><code>distribution</code></strong> :&ensp;<code>list</code> of <code>int</code></dt>
+<dd>Distribution of the "community" dimension</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_node_list_attribute(G, attribute_name, distribution):
+    &#34;&#34;&#34;
+    Add to each node a list named attribute_name containing edge representing the
+    possible social contanct to each node.
+    This list is used to draw the new edges for the node in the step function
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    attribute_name: string
+        Name of the node attribute
+
+    distribution: list of int
+        Distribution of the &#34;community&#34; dimension
+        
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    # extract node list and randomize
+    node_list = list(G.vs)
+    random.shuffle(node_list)
+
+    # iterate over community
+    for element in distribution:
+        community_nodes = list()
+        # extract community members
+        for i in range(0, element):
+            community_nodes.append(node_list.pop())
+        # for each node, pick a random number (proportional to sociality) of 
+        # community member and create a possible link
+        for node in community_nodes:
+            tmp = int(math.ceil(len(community_nodes) / 3))
+            tmp2 = int(math.ceil(2 * len(community_nodes) / 3))
+            if node[&#34;sociality&#34;] == &#34;low&#34;:
+                n_contact = 1 + int(random.random() * (tmp - 1))
+            if node[&#34;sociality&#34;] == &#34;medium&#34;:
+                n_contact = tmp + int(random.random() * (tmp2 - tmp))
+            if node[&#34;sociality&#34;] == &#34;high&#34;:
+                n_contact = tmp2 + int(random.random() * (len(community_nodes) + 1 - tmp2))
+
+            targets = random.sample(community_nodes, n_contact)
+            for target in targets:
+                if target != node and not (node.index, target.index) in node[attribute_name]:
+                    node[attribute_name].append((node.index, target.index))
+                    target[attribute_name].append((target.index, node.index))  </code></pre>
+</details>
+</dd>
+<dt id="ctns.generator.init_infection"><code class="name flex">
+<span>def <span class="ident">init_infection</span></span>(<span>G, n_initial_infected_nodes)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Make random nodes infected in the network</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
+<dd>The contact network</dd>
+<dt><strong><code>n_initial_infected_nodes</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of infected nodes to put on the network</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def init_infection(G, n_initial_infected_nodes):
+    &#34;&#34;&#34;
+    Make random nodes infected in the network
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    n_initial_infected_nodes: int
+        Number of infected nodes to put on the network
+
+    Return
+    ------
+    None
+
+    &#34;&#34;&#34;
+    for node in random.sample(list(G.vs), n_initial_infected_nodes):
+        node[&#34;agent_status&#34;] = &#34;E&#34;
+        node[&#34;infected&#34;] = True
+        node[&#34;days_from_infection&#34;] = 1</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ctns" href="index.html">ctns</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="ctns.generator.generate_network" href="#ctns.generator.generate_network">generate_network</a></code></li>
+<li><code><a title="ctns.generator.generate_node_family_attribute" href="#ctns.generator.generate_node_family_attribute">generate_node_family_attribute</a></code></li>
+<li><code><a title="ctns.generator.generate_node_list_attribute" href="#ctns.generator.generate_node_list_attribute">generate_node_list_attribute</a></code></li>
+<li><code><a title="ctns.generator.init_infection" href="#ctns.generator.init_infection">init_infection</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
