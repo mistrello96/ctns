@@ -174,7 +174,7 @@ def main():
         incubation_days = int(input("Please insert the disease incubation duration: "))
         infection_duration = int(input("Please insert the disease duration: "))
         initial_day_restriction = int(input("Please insert the step index from which the social distance is applied: "))
-        restriction_duration = int(input("Please insert the number of days which the social distance last. Insert 0
+        restriction_duration = int(input("Please insert the number of days which the social distance last. Insert 0 to make the restriction last for all the simulation: "))
         social_distance_strictness = int(input("Please insert a value between 0 and 4 to set the social distance strictness: "))
         restriction_decreasing = int(input("Press 0 to make the strictness of the social distance decrease during the simulation or 1 to keep it fixed: "))
         n_initial_infected_nodes = int(input("Please insert the number of initial infected individuals: "))
