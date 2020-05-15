@@ -1,6 +1,6 @@
 import igraph as ig
 import numpy as np
-import sys, random, os, time
+import sys, random, os, time, pickle
 try:
     from ctns.generator import generate_network, init_infection
     from ctns.steps import step
@@ -105,17 +105,16 @@ def run_simulation(path,
 
     # clear folder
     file_list = os.listdir(path)
-
+    
     for item in file_list:
         if item.endswith(".pickle"):
             os.remove(os.path.join(path, item))
+    
 
     # init network
     G = generate_network(n_of_families)
     infection_rate = compute_IR(G, R_0, infection_duration, incubation_days)
     init_infection(G, n_initial_infected_nodes)
-    dump_network(G, path + "/initial_network")
-
     nets = list()
 
     if use_steps:
@@ -124,7 +123,6 @@ def run_simulation(path,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
             nets.append(net)
-            dump_network(G, path + "/network{}".format(sim_index))
     else:
         exposed = n_initial_infected_nodes
         infected = 0
@@ -134,13 +132,15 @@ def run_simulation(path,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
             nets.append(net)
-            dump_network(G, path + "/network{}".format(sim_index))
             sim_index += 1
             infected = report["I"]
             exposed = report["E"]
 
             if infected + exposed == 0:
                 break
+
+    with open(path + "/nets.pickle", "wb") as f:
+        pickle.dump(nets, f)
 
     print("\n Simulation ended successfully \n You can find the dumped networks in the choosen folder \n")
 
