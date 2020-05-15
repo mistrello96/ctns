@@ -122,7 +122,7 @@ def run_simulation(path,
             report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
-            nets.append(net)
+            nets.append(net.copy())
     else:
         exposed = n_initial_infected_nodes
         infected = 0
@@ -131,7 +131,7 @@ def run_simulation(path,
             report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
-            nets.append(net)
+            nets.append(net.copy())
             sim_index += 1
             infected = report["I"]
             exposed = report["E"]
