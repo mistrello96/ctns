@@ -1,7 +1,7 @@
 # CTNS
 
 Contact Tracing Network Simulator, a tool to simulate digital contact networks beetween people in a population where a disease is spreading.
-The simulation is highly customizable and will produce a time series of dumps of the network. We suggest to use xxxxx to analize this dumps.
+The simulation is highly customizable and will produce a dump containig a time series of networks. We suggest to use xxxxx to analize this dump.
 
 ## Getting Started
 
