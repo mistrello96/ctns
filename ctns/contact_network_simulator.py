@@ -1,6 +1,7 @@
 import igraph as ig
 import numpy as np
-import sys, random, os, time, pickle
+from pathlib import Path
+import sys, random, os, time, gzip, pickle
 try:
     from ctns.generator import generate_network, init_infection
     from ctns.steps import step
@@ -10,8 +11,7 @@ except ImportError as e:
     from steps import step
     from utility import dump_network, compute_IR
 
-def run_simulation(path,
-    n_of_families = 500,
+def run_simulation(n_of_families = 500,
     use_steps = True,
     number_of_steps = 150,
     incubation_days = 5,
@@ -26,17 +26,16 @@ def run_simulation(path,
     policy_test = "Random",
     contact_tracking_efficiency = 0.8,
     use_random_seed = None,
-    seed = None):
+    seed = None,
+    dump = False,
+    path = None):
 
     """
-    Execute the simulation and dump resulting networks
+    Execute the simulation and dump/return resulting networks
 
     Parameters
     ----------
     
-    path:string
-        The path to the folder where the networks will be saved
-
     n_of_families: int
         Number of families in the network
         
@@ -87,10 +86,18 @@ def run_simulation(path,
     seed: int
         The random seed value
 
+    dump: bool
+        If true dump networks to file, otherwise return the networks list
+        NB, if network simulation is too heavy, the dump can crash
+
+    path:string
+        The path to the folder where the networks will be saved
+
     Return
     ------
 
-    None. It saves the dumps of the networks in the path folder
+    nets:list
+        List of nets of the simulation
 
     """
     # generate new edges
@@ -138,10 +145,16 @@ def run_simulation(path,
 
             if infected + exposed == 0:
                 break
-
-    with open(path + "/nets.pickle", "wb") as f:
-        pickle.dump(nets, f)
-
+    if dump:
+        try:
+            with open(Path(path + "/nets.pickle"), "wb") as f:
+                pickle.dump(nets, f)
+        except:
+            print("Simulation is too big to be dumped, please use the return value of the function for analysis")
+            sys.exit(-1)
+    
+    return nets
+    
     print("\n Simulation ended successfully \n You can find the dumped networks in the choosen folder \n")
 
 def main():
@@ -162,6 +175,7 @@ def main():
     contact_tracking_efficiency = None
     use_random_seed = None
     seed = None
+    dump = True
     path = None
 
     user_interaction = int(input("Press 0 to load the default values or 1 to manually input the configuration for the simulation: "))
@@ -229,12 +243,12 @@ def main():
             restriction_decreasing = False
             restriction_duration = False        
 
-        run_simulation(path, n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
+        run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
-            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed, seed, path)
+            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed, seed, dump, path)
     else:
         path = input("Please insert the path to a folder for dumps: ")
-        run_simulation(path = path)
+        run_simulation(path = path, dump = True)
 
 if __name__ == "__main__":
     main()
