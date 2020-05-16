@@ -1,7 +1,7 @@
 # CTNS
 
 Contact Tracing Network Simulator, a tool to simulate digital contact networks beetween people in a population where a disease is spreading.
-The simulation is highly customizable and will produce a dump containig a time series of networks. We suggest to use xxxxx to analize this dump.
+The simulation is highly customizable and will return (or dump) a time series of networks. We suggest to use (not jet implemented) to analize the results.
 
 ## Getting Started
 
@@ -43,7 +43,7 @@ ctns.bat
 
 from Windows CMD/Power Shell.
 
-Remember to specify a folder for the network dumps. Note that if any previous dumps is found the selected folder, it will be overwritten.
+Remember to specify a folder for the network dumps if needed. Note that if any previous dumps is found the selected folder, it will be overwritten.
 
 You can alternatively clone the repo, navigate to the ctns/ctns folder and run
 
@@ -53,7 +53,7 @@ python3 contact_network_simulator.py
 
 ## Network structure
 
-This dumps are igraph networks that will have nodes (representing people) and weighed edges (representing contacts).
+The networks are igraph networks that will have nodes (representing people) and weighed edges (representing contacts).
 Each node will have the following relevant attributes:
 - sex -> either man or woman
 - age -> a number representing the age slice of the node (e.g., 40 represent a node with age between [40,50))

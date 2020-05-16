@@ -10,7 +10,7 @@ with open('README.md') as readme_file:
 setup(
   name = 'ctns',
   packages = find_packages(),
-  version = '0.2.2',
+  version = '0.2.3',
   scripts = ['bin/ctns', 'bin/ctns.bat','bin/ctns_run.py'],
   description = 'CTNS, Contact Tracing Network Simulator: a tool to simulate contact tracing in a population where a disease is spreading',
   long_description_content_type = "text/markdown",

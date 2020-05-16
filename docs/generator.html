@@ -27,7 +27,10 @@
 <pre><code class="python">import igraph as ig
 import random, math
 import numpy as np
-from ctns.utility import fix_distribution_node_number
+try:
+    from ctns.utility import fix_distribution_node_number
+except ImportError as e:
+    from utility import fix_distribution_node_number
 
 def generate_node_list_attribute(G, attribute_name, distribution):
     &#34;&#34;&#34;

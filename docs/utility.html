@@ -29,7 +29,10 @@ import random
 import numpy as np
 #import matplotlib.pyplot as plt
 from collections import Counter
-from ctns.steps import step
+try:
+    from ctns.steps import step
+except ImportError as e:
+    from steps import step
 
 def fix_distribution_node_number(distribution, n_nodes):
     &#34;&#34;&#34;

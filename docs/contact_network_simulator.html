@@ -26,236 +26,258 @@
 </summary>
 <pre><code class="python">import igraph as ig
 import numpy as np
-import sys, random, os
-from ctns.generator import generate_network, init_infection
-from ctns.steps import step
-from ctns.utility import dump_network, compute_IR
+from pathlib import Path
+import sys, random, os, time, gzip, pickle
+try:
+    from ctns.generator import generate_network, init_infection
+    from ctns.steps import step
+    from ctns.utility import dump_network, compute_IR
+except ImportError as e:
+    from generator import generate_network, init_infection
+    from steps import step
+    from utility import dump_network, compute_IR
 
-def run_simulation(path,
-        n_of_families = 500,
-        use_steps = True,
-        number_of_steps = 150,
-        incubation_days = 5,
-        infection_duration = 21,
-        initial_day_restriction = 50,
-        restriction_duration = 21,
-        social_distance_strictness = 2,
-        restriction_decreasing = True,
-        n_initial_infected_nodes = 10,
-        R_0 = 2.9,
-        n_test = 5,
-        policy_test = &#34;Random&#34;,
-        contact_tracking_efficiency = 0.8,
-        use_random_seed = None,
-        seed = None):
+def run_simulation(n_of_families = 500,
+    use_steps = True,
+    number_of_steps = 150,
+    incubation_days = 5,
+    infection_duration = 21,
+    initial_day_restriction = 50,
+    restriction_duration = 21,
+    social_distance_strictness = 2,
+    restriction_decreasing = True,
+    n_initial_infected_nodes = 10,
+    R_0 = 2.9,
+    n_test = 5,
+    policy_test = &#34;Random&#34;,
+    contact_tracking_efficiency = 0.8,
+    use_random_seed = None,
+    seed = None,
+    dump = False,
+    path = None):
 
-        &#34;&#34;&#34;
-        Execute the simulation and dump resulting networks
+    &#34;&#34;&#34;
+    Execute the simulation and dump/return resulting networks
 
-        Parameters
-        ----------
+    Parameters
+    ----------
+    
+    n_of_families: int
+        Number of families in the network
         
-        path:string
-                The path to the folder where the networks will be saved
+    use_steps : bool 
+        Use a fixed number of steps or keep the simulation going untill the spreading is not over
 
-        n_of_families: int
-                Number of families in the network
-            
-        use_steps : bool 
-                Use a fixed number of steps or keep the simulation going untill the spreading is not over
+    number_of_steps : int
+        Number of simulation step to perform
 
-        number_of_steps : int
-                Number of simulation step to perform
+    incubation_days: int
+        Number of days where the patient is not infective
 
-        incubation_days: int
-                Number of days where the patient is not infective
+    infection_duration: int
+        Total duration of the disease per patient
 
-        infection_duration: int
-                Total duration of the disease per patient
+    initial_day_restriction: int
+        Day index from when social distancing measures are applied
 
-        initial_day_restriction: int
-                Day index from when social distancing measures are applied
+    restriction_duration: int
+        How many days the social distancing last. Use 0 to make the restriction last till the end of the simulation
 
-        restriction_duration: int
-                How many days the social distancing last. Use -1 to make the restriction last till the end of the simulation
+    social_distance_strictness: int
+        How strict from 0 to 4 the social distancing measures are. 
+        Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
+        Note that family contacts are not included in this reduction
 
-        social_distance_strictness: int
-                How strict from 0 to 4 the social distancing measures are. 
-                Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
-                Note that family contacts are not included in this reduction
+    restriction_decreasing: bool
+        If the social distancing will decrease the strictness during the restriction_duration period
 
-        restriction_decreasing: bool
-                If the social distancing will decrease the strictness during the restriction_duration period
+    n_initial_infected_nodes: int
+        Number of nodes that are initially infected
 
-        n_initial_infected_nodes: int
-                Number of nodes that are initially infected
+    R_0: float
+        The R0 facotr of the disease
 
-        R_0: float
-                The R0 facotr of the disease
+    n_test: int
+        Number of avaiable tests
 
-        n_test: int
-                Number of avaiable tests
+    policy_test: string
+        Strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality
 
-        policy_test: string
-                Strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality
+    contact_tracking_efficiency: float
+        The percentage of contacts successfully traced back in the past 14 days
 
-        contact_tracking_efficiency: float
-                The percentage of contacts successfully traced back in the past 14 days
+    use_random_seed: bool
+        Id use or not a fixed random seed
 
-        use_random_seed: bool
-                Id use or not a fixed random seed
+    seed: int
+        The random seed value
 
-        seed: int
-                The random seed value
+    dump: bool
+        If true dump networks to file, otherwise return the networks list
+        NB, if network simulation is too heavy, the dump can crash
 
-        Return
-        ------
+    path:string
+        The path to the folder where the networks will be saved
 
-        None. It saves the dumps of the networks in the path folder
+    Return
+    ------
 
-        &#34;&#34;&#34;
-        # generate new edges
+    nets:list
+        List of nets of the simulation
 
-        if use_random_seed:
-                np.random.seed(seed = seed)
-                random.seed(seed)
-        else:
-                np.random.seed(int(time.time()))
-                random.seed(time.time())
+    &#34;&#34;&#34;
+    # generate new edges
+
+    if use_random_seed:
+        np.random.seed(seed = seed)
+        random.seed(seed)
+    else:
+        np.random.seed(int(time.time()))
+        random.seed(time.time())
 
 
-        # clear folder
-        file_list = os.listdir(path)
+    # clear folder
+    file_list = os.listdir(path)
+    
+    for item in file_list:
+        if item.endswith(&#34;.pickle&#34;):
+            os.remove(os.path.join(path, item))
+    
 
-        for item in file_list:
-                if item.endswith(&#34;.pickle&#34;):
-                        os.remove(os.path.join(path, item))
+    # init network
+    G = generate_network(n_of_families)
+    infection_rate = compute_IR(G, R_0, infection_duration, incubation_days)
+    init_infection(G, n_initial_infected_nodes)
+    nets = list()
 
-        # init network
-        G = generate_network(n_of_families)
-        infection_rate = compute_IR(G, R_0, infection_duration, incubation_days)
-        init_infection(G, n_initial_infected_nodes)
-        dump_network(G, path + &#34;/initial_network&#34;)
+    if use_steps:
+        for sim_index in range (0, number_of_steps):
+            report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
+                             initial_day_restriction, restriction_duration, social_distance_strictness, 
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
+            nets.append(net.copy())
+    else:
+        exposed = n_initial_infected_nodes
+        infected = 0
+        sim_index = 0
+        while((infected + exposed) != 0):
+            report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
+                             initial_day_restriction, restriction_duration, social_distance_strictness, 
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
+            nets.append(net.copy())
+            sim_index += 1
+            infected = report[&#34;I&#34;]
+            exposed = report[&#34;E&#34;]
 
-        nets = list()
+            if infected + exposed == 0:
+                break
+    if dump:
+        try:
+            with open(Path(path + &#34;/nets.pickle&#34;), &#34;wb&#34;) as f:
+                pickle.dump(nets, f)
+        except:
+            print(&#34;Simulation is too big to be dumped, please use the return value of the function for analysis&#34;)
+            sys.exit(-1)
+    
+    return nets
+    
+    print(&#34;\n Simulation ended successfully \n You can find the dumped networks in the choosen folder \n&#34;)
 
+def main():
+
+    n_of_families = None
+    use_steps = None
+    number_of_steps = None
+    incubation_days = None
+    infection_duration = None
+    initial_day_restriction = None
+    restriction_duration = None
+    social_distance_strictness = None
+    restriction_decreasing = None
+    n_initial_infected_nodes = None
+    R_0 = None
+    n_test = None
+    policy_test = None
+    contact_tracking_efficiency = None
+    use_random_seed = None
+    seed = None
+    dump = True
+    path = None
+
+    user_interaction = int(input(&#34;Press 0 to load the default values or 1 to manually input the configuration for the simulation: &#34;))
+    # get values from user
+    if user_interaction:
+        n_of_families = int(input(&#34;Please insert the number of families in the simulation: &#34;))
+        use_steps = int(input(&#34;Press 1 use a fixed number of steps or 0 to run the simulation untill the infection is over: &#34;))
         if use_steps:
-                for sim_index in range (0, number_of_steps):
-                    report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
-                                     initial_day_restriction, restriction_duration, social_distance_strictness, 
-                                     restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
-                    nets.append(net)
-                    dump_network(G, path + &#34;/network{}&#34;.format(sim_index))
-        else:
-                exposed = n_initial_infected_nodes
-                infected = 0
-                sim_index = 0
-                while((infected + exposed) != 0):
-                    report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
-                                     initial_day_restriction, restriction_duration, social_distance_strictness, 
-                                     restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
-                    nets.append(net)
-                    dump_network(G, path + &#34;/network{}&#34;.format(sim_index))
-                    sim_index += 1
-                    infected = report[&#34;I&#34;]
-                    exposed = report[&#34;E&#34;]
+            number_of_steps = int(input(&#34;Please insert the number of the simulation step: &#34;))
+        incubation_days = int(input(&#34;Please insert the disease incubation duration: &#34;))
+        infection_duration = int(input(&#34;Please insert the disease duration: &#34;))
+        initial_day_restriction = int(input(&#34;Please insert the step index from which the social distance is applied: &#34;))
+        restriction_duration = int(input(&#34;Please insert the number of days which the social distance last. Insert 0 to make the restriction last for all the simulation: &#34;))
+        social_distance_strictness = int(input(&#34;Please insert a value between 0 and 4 to set the social distance strictness: &#34;))
+        restriction_decreasing = int(input(&#34;Press 0 to make the strictness of the social distance decrease during the simulation or 1 to keep it fixed: &#34;))
+        n_initial_infected_nodes = int(input(&#34;Please insert the number of initial infected individuals: &#34;))
+        R_0 = float(input(&#34;Please insert the value of R0: &#34;))
+        n_test = int(input(&#34;Please insert the number of available test per day: &#34;))
+        policy_test = input(&#34;Please insert strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality: &#34;)
+        contact_tracking_efficiency = float(input(&#34;Please insert a value between 0 and 1 to set the contact tracing efficiency: &#34;))
+        use_random_seed = int(input(&#34;Press 1 use a fixed a random seed or 0 to pick a random seed: &#34;))
+        if use_random_seed:
+            seed = int(input(&#34;Please insert the random seed: &#34;))
+        path = input(&#34;Please insert the path to a folder for dumps: &#34;)    
 
-                    if infected + exposed == 0:
-                        break
+        # check value
+        if n_of_families &lt; 0:
+            print(&#34;Invalid number of families&#34;)
+            sys.exit()
+        if use_steps:
+            if number_of_steps &lt; 0:
+                print(&#34;Invalid number of steps&#34;)
+                sys.exit()
+        if infection_duration &lt; 0:
+            print(&#34;Invalid infection duration&#34;)
+            sys.exit()
+        if incubation_days &lt; 0 or incubation_days &gt;= infection_duration:
+            print(&#34;Invalid incubation duration&#34;)
+            sys.exit()
+        if initial_day_restriction &lt; 0 :
+            print(&#34;Invalid initial day social distancing&#34;)
+            sys.exit()
+        if social_distance_strictness &lt; 0 or social_distance_strictness &gt; 4:
+            print(&#34;Invalid social distancing value&#34;)
+            sys.exit()
+        if n_initial_infected_nodes &lt; 0 or n_initial_infected_nodes &gt; n_of_families:
+            print(&#34;Invalid number of initial infected nodes&#34;)
+            sys.exit()
+        if R_0 &lt; 0:
+            print(&#34;Invalid value of R0&#34;)
+            sys.exit()
+        if n_test &lt; 0:
+            print(&#34;Invalid number of test per day&#34;)
+            sys.exit()
+        if not (policy_test == &#34;Random&#34; or policy_test == &#34;Degree Centrality&#34; or policy_test == &#34;Betweenness Centrality&#34;):
+            print(&#34;Invalid test strategy&#34;)
+            sys.exit()
+        if contact_tracking_efficiency &lt; 0 or contact_tracking_efficiency &gt; 1:
+            print(&#34;Invalid contact tracing efficiency&#34;)
+            sys.exit()
+        if restriction_duration &lt; 0:
+            print(&#34;Invalid restriction restriction_duration&#34;)
+            sys.exit()
+        if restriction_duration == 0:
+            restriction_decreasing = False
+            restriction_duration = False        
 
-        print(&#34;\n Simulation ended successfully \n You can find the dumped networks in the choosen folder \n&#34;)
+        run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
+            initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
+            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed, seed, dump, path)
+    else:
+        path = input(&#34;Please insert the path to a folder for dumps: &#34;)
+        run_simulation(path = path, dump = True)
 
 if __name__ == &#34;__main__&#34;:
-
-        n_of_families = None
-        use_steps = None
-        number_of_steps = None
-        incubation_days = None
-        infection_duration = None
-        initial_day_restriction = None
-        restriction_duration = None
-        social_distance_strictness = None
-        restriction_decreasing = None
-        n_initial_infected_nodes = None
-        R_0 = None
-        n_test = None
-        policy_test = None
-        contact_tracking_efficiency = None
-        use_random_seed = None
-        seed = None
-        path = None
-
-        user_interaction = int(input(&#34;Press 0 to load the default values or 1 to manually input the configuration for the simulation: &#34;))
-        # get values from user
-        if user_interaction:
-                n_of_families = int(input(&#34;Please insert the number of families in the simulation: &#34;))
-                use_steps = int(input(&#34;Press 1 use a fixed number of steps or 0 to run the simulation untill the infection is over: &#34;))
-                if use_steps:
-                        number_of_steps = int(input(&#34;Please insert the number of the simulation step: &#34;))
-                incubation_days = int(input(&#34;Please insert the disease incubation duration: &#34;))
-                infection_duration = int(input(&#34;Please insert the disease duration: &#34;))
-                initial_day_restriction = int(input(&#34;Please insert the step index from which the social distance is applied: &#34;))
-                restriction_duration = int(input(&#34;Please insert the number of days which the social distance last. Insert -1 to make the restriction last for all the simulation: &#34;))
-                social_distance_strictness = int(input(&#34;Please insert a value between 0 and 4 to set the social distance strictness: &#34;))
-                restriction_decreasing = int(input(&#34;Press 0 to make the strictness of the social distance decrease during the simulation or 1 to keep it fixed: &#34;))
-                n_initial_infected_nodes = int(input(&#34;Please insert the number of initial infected individuals: &#34;))
-                R_0 = float(input(&#34;Please insert the value of R0: &#34;))
-                n_test = int(input(&#34;Please insert the number of available test per day: &#34;))
-                policy_test = input(&#34;Please insert strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality: &#34;)
-                contact_tracking_efficiency = float(input(&#34;Please insert a value between 0 and 1 to set the contact tracing efficiency: &#34;))
-                use_random_seed = int(input(&#34;Press 1 use a fixed a random seed or 0 to pick a random seed: &#34;))
-                if use_random_seed:
-                        seed = int(input(&#34;Please insert the random seed: &#34;))
-                path = input(&#34;Please insert the path to a folder for dumps: &#34;)  
-
-                # check value
-                if n_of_families &lt; 0:
-                        print(&#34;Invalid number of families&#34;)
-                        sys.exit()
-                if use_steps:
-                        if number_of_steps &lt; 0:
-                                print(&#34;Invalid number of steps&#34;)
-                                sys.exit()
-                if infection_duration &lt; 0:
-                        print(&#34;Invalid infection duration&#34;)
-                        sys.exit()
-                if incubation_days &lt; 0 or incubation_days &gt;= infection_duration:
-                        print(&#34;Invalid incubation duration&#34;)
-                        sys.exit()
-                if initial_day_restriction &lt; 0 :
-                        print(&#34;Invalid initial day social distancing&#34;)
-                        sys.exit()
-                if social_distance_strictness &lt; 0 or social_distance_strictness &gt; 4:
-                        print(&#34;Invalid social distancing value&#34;)
-                        sys.exit()
-                if n_initial_infected_nodes &lt; 0 or n_initial_infected_nodes &gt; n_of_families:
-                        print(&#34;Invalid number of initial infected nodes&#34;)
-                        sys.exit()
-                if R_0 &lt; 0:
-                        print(&#34;Invalid value of R0&#34;)
-                        sys.exit()
-                if n_test &lt; 0:
-                        print(&#34;Invalid number of test per day&#34;)
-                        sys.exit()
-                if not (policy_test == &#34;Random&#34; or policy_test == &#34;Degree Centrality&#34; or policy_test == &#34;Betweenness Centrality&#34;):
-                        print(&#34;Invalid test strategy&#34;)
-                        sys.exit()
-                if contact_tracking_efficiency &lt; 0 or contact_tracking_efficiency &gt; 1:
-                        print(&#34;Invalid contact tracing efficiency&#34;)
-                        sys.exit()
-                if restriction_duration &lt; -1:
-                        print(&#34;Invalid restriction restriction_duration&#34;)
-                        sys.exit()
-                if      restriction_duration == -1:
-                        restriction_decreasing = False
-                        restriction_duration = False            
-
-                run_simulation(path, n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
-                        initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
-                        n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed, seed, path)
-        else:
-                path = input(&#34;Please insert the path to a folder for dumps: &#34;)
-                run_simulation(path = path)</code></pre>
+    main()</code></pre>
 </details>
 </section>
 <section>
@@ -265,14 +287,115 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="ctns.contact_network_simulator.run_simulation"><code class="name flex">
-<span>def <span class="ident">run_simulation</span></span>(<span>path, n_of_families=500, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=5, policy_test='Random', contact_tracking_efficiency=0.8, use_random_seed=None, seed=None)</span>
+<dt id="ctns.contact_network_simulator.main"><code class="name flex">
+<span>def <span class="ident">main</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Execute the simulation and dump resulting networks</p>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def main():
+
+    n_of_families = None
+    use_steps = None
+    number_of_steps = None
+    incubation_days = None
+    infection_duration = None
+    initial_day_restriction = None
+    restriction_duration = None
+    social_distance_strictness = None
+    restriction_decreasing = None
+    n_initial_infected_nodes = None
+    R_0 = None
+    n_test = None
+    policy_test = None
+    contact_tracking_efficiency = None
+    use_random_seed = None
+    seed = None
+    dump = True
+    path = None
+
+    user_interaction = int(input(&#34;Press 0 to load the default values or 1 to manually input the configuration for the simulation: &#34;))
+    # get values from user
+    if user_interaction:
+        n_of_families = int(input(&#34;Please insert the number of families in the simulation: &#34;))
+        use_steps = int(input(&#34;Press 1 use a fixed number of steps or 0 to run the simulation untill the infection is over: &#34;))
+        if use_steps:
+            number_of_steps = int(input(&#34;Please insert the number of the simulation step: &#34;))
+        incubation_days = int(input(&#34;Please insert the disease incubation duration: &#34;))
+        infection_duration = int(input(&#34;Please insert the disease duration: &#34;))
+        initial_day_restriction = int(input(&#34;Please insert the step index from which the social distance is applied: &#34;))
+        restriction_duration = int(input(&#34;Please insert the number of days which the social distance last. Insert 0 to make the restriction last for all the simulation: &#34;))
+        social_distance_strictness = int(input(&#34;Please insert a value between 0 and 4 to set the social distance strictness: &#34;))
+        restriction_decreasing = int(input(&#34;Press 0 to make the strictness of the social distance decrease during the simulation or 1 to keep it fixed: &#34;))
+        n_initial_infected_nodes = int(input(&#34;Please insert the number of initial infected individuals: &#34;))
+        R_0 = float(input(&#34;Please insert the value of R0: &#34;))
+        n_test = int(input(&#34;Please insert the number of available test per day: &#34;))
+        policy_test = input(&#34;Please insert strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality: &#34;)
+        contact_tracking_efficiency = float(input(&#34;Please insert a value between 0 and 1 to set the contact tracing efficiency: &#34;))
+        use_random_seed = int(input(&#34;Press 1 use a fixed a random seed or 0 to pick a random seed: &#34;))
+        if use_random_seed:
+            seed = int(input(&#34;Please insert the random seed: &#34;))
+        path = input(&#34;Please insert the path to a folder for dumps: &#34;)    
+
+        # check value
+        if n_of_families &lt; 0:
+            print(&#34;Invalid number of families&#34;)
+            sys.exit()
+        if use_steps:
+            if number_of_steps &lt; 0:
+                print(&#34;Invalid number of steps&#34;)
+                sys.exit()
+        if infection_duration &lt; 0:
+            print(&#34;Invalid infection duration&#34;)
+            sys.exit()
+        if incubation_days &lt; 0 or incubation_days &gt;= infection_duration:
+            print(&#34;Invalid incubation duration&#34;)
+            sys.exit()
+        if initial_day_restriction &lt; 0 :
+            print(&#34;Invalid initial day social distancing&#34;)
+            sys.exit()
+        if social_distance_strictness &lt; 0 or social_distance_strictness &gt; 4:
+            print(&#34;Invalid social distancing value&#34;)
+            sys.exit()
+        if n_initial_infected_nodes &lt; 0 or n_initial_infected_nodes &gt; n_of_families:
+            print(&#34;Invalid number of initial infected nodes&#34;)
+            sys.exit()
+        if R_0 &lt; 0:
+            print(&#34;Invalid value of R0&#34;)
+            sys.exit()
+        if n_test &lt; 0:
+            print(&#34;Invalid number of test per day&#34;)
+            sys.exit()
+        if not (policy_test == &#34;Random&#34; or policy_test == &#34;Degree Centrality&#34; or policy_test == &#34;Betweenness Centrality&#34;):
+            print(&#34;Invalid test strategy&#34;)
+            sys.exit()
+        if contact_tracking_efficiency &lt; 0 or contact_tracking_efficiency &gt; 1:
+            print(&#34;Invalid contact tracing efficiency&#34;)
+            sys.exit()
+        if restriction_duration &lt; 0:
+            print(&#34;Invalid restriction restriction_duration&#34;)
+            sys.exit()
+        if restriction_duration == 0:
+            restriction_decreasing = False
+            restriction_duration = False        
+
+        run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
+            initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
+            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed, seed, dump, path)
+    else:
+        path = input(&#34;Please insert the path to a folder for dumps: &#34;)
+        run_simulation(path = path, dump = True)</code></pre>
+</details>
+</dd>
+<dt id="ctns.contact_network_simulator.run_simulation"><code class="name flex">
+<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=500, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=5, policy_test='Random', contact_tracking_efficiency=0.8, use_random_seed=None, seed=None, dump=False, path=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Execute the simulation and dump/return resulting networks</p>
 <h2 id="parameters">Parameters</h2>
-<p>path:string
-The path to the folder where the networks will be saved</p>
 <dl>
 <dt><strong><code>n_of_families</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of families in the network</dd>
@@ -287,7 +410,7 @@ The path to the folder where the networks will be saved</p>
 <dt><strong><code>initial_day_restriction</code></strong> :&ensp;<code>int</code></dt>
 <dd>Day index from when social distancing measures are applied</dd>
 <dt><strong><code>restriction_duration</code></strong> :&ensp;<code>int</code></dt>
-<dd>How many days the social distancing last. Use -1 to make the restriction last till the end of the simulation</dd>
+<dd>How many days the social distancing last. Use 0 to make the restriction last till the end of the simulation</dd>
 <dt><strong><code>social_distance_strictness</code></strong> :&ensp;<code>int</code></dt>
 <dd>How strict from 0 to 4 the social distancing measures are.
 Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
@@ -308,146 +431,164 @@ Note that family contacts are not included in this reduction</dd>
 <dd>Id use or not a fixed random seed</dd>
 <dt><strong><code>seed</code></strong> :&ensp;<code>int</code></dt>
 <dd>The random seed value</dd>
+<dt><strong><code>dump</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If true dump networks to file, otherwise return the networks list
+NB, if network simulation is too heavy, the dump can crash</dd>
 </dl>
+<p>path:string
+The path to the folder where the networks will be saved</p>
 <h2 id="return">Return</h2>
-<p>None. It saves the dumps of the networks in the path folder</p></div>
+<p>nets:list
+List of nets of the simulation</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def run_simulation(path,
-        n_of_families = 500,
-        use_steps = True,
-        number_of_steps = 150,
-        incubation_days = 5,
-        infection_duration = 21,
-        initial_day_restriction = 50,
-        restriction_duration = 21,
-        social_distance_strictness = 2,
-        restriction_decreasing = True,
-        n_initial_infected_nodes = 10,
-        R_0 = 2.9,
-        n_test = 5,
-        policy_test = &#34;Random&#34;,
-        contact_tracking_efficiency = 0.8,
-        use_random_seed = None,
-        seed = None):
+<pre><code class="python">def run_simulation(n_of_families = 500,
+    use_steps = True,
+    number_of_steps = 150,
+    incubation_days = 5,
+    infection_duration = 21,
+    initial_day_restriction = 50,
+    restriction_duration = 21,
+    social_distance_strictness = 2,
+    restriction_decreasing = True,
+    n_initial_infected_nodes = 10,
+    R_0 = 2.9,
+    n_test = 5,
+    policy_test = &#34;Random&#34;,
+    contact_tracking_efficiency = 0.8,
+    use_random_seed = None,
+    seed = None,
+    dump = False,
+    path = None):
 
-        &#34;&#34;&#34;
-        Execute the simulation and dump resulting networks
+    &#34;&#34;&#34;
+    Execute the simulation and dump/return resulting networks
 
-        Parameters
-        ----------
+    Parameters
+    ----------
+    
+    n_of_families: int
+        Number of families in the network
         
-        path:string
-                The path to the folder where the networks will be saved
+    use_steps : bool 
+        Use a fixed number of steps or keep the simulation going untill the spreading is not over
 
-        n_of_families: int
-                Number of families in the network
-            
-        use_steps : bool 
-                Use a fixed number of steps or keep the simulation going untill the spreading is not over
+    number_of_steps : int
+        Number of simulation step to perform
 
-        number_of_steps : int
-                Number of simulation step to perform
+    incubation_days: int
+        Number of days where the patient is not infective
 
-        incubation_days: int
-                Number of days where the patient is not infective
+    infection_duration: int
+        Total duration of the disease per patient
 
-        infection_duration: int
-                Total duration of the disease per patient
+    initial_day_restriction: int
+        Day index from when social distancing measures are applied
 
-        initial_day_restriction: int
-                Day index from when social distancing measures are applied
+    restriction_duration: int
+        How many days the social distancing last. Use 0 to make the restriction last till the end of the simulation
 
-        restriction_duration: int
-                How many days the social distancing last. Use -1 to make the restriction last till the end of the simulation
+    social_distance_strictness: int
+        How strict from 0 to 4 the social distancing measures are. 
+        Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
+        Note that family contacts are not included in this reduction
 
-        social_distance_strictness: int
-                How strict from 0 to 4 the social distancing measures are. 
-                Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
-                Note that family contacts are not included in this reduction
+    restriction_decreasing: bool
+        If the social distancing will decrease the strictness during the restriction_duration period
 
-        restriction_decreasing: bool
-                If the social distancing will decrease the strictness during the restriction_duration period
+    n_initial_infected_nodes: int
+        Number of nodes that are initially infected
 
-        n_initial_infected_nodes: int
-                Number of nodes that are initially infected
+    R_0: float
+        The R0 facotr of the disease
 
-        R_0: float
-                The R0 facotr of the disease
+    n_test: int
+        Number of avaiable tests
 
-        n_test: int
-                Number of avaiable tests
+    policy_test: string
+        Strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality
 
-        policy_test: string
-                Strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality
+    contact_tracking_efficiency: float
+        The percentage of contacts successfully traced back in the past 14 days
 
-        contact_tracking_efficiency: float
-                The percentage of contacts successfully traced back in the past 14 days
+    use_random_seed: bool
+        Id use or not a fixed random seed
 
-        use_random_seed: bool
-                Id use or not a fixed random seed
+    seed: int
+        The random seed value
 
-        seed: int
-                The random seed value
+    dump: bool
+        If true dump networks to file, otherwise return the networks list
+        NB, if network simulation is too heavy, the dump can crash
 
-        Return
-        ------
+    path:string
+        The path to the folder where the networks will be saved
 
-        None. It saves the dumps of the networks in the path folder
+    Return
+    ------
 
-        &#34;&#34;&#34;
-        # generate new edges
+    nets:list
+        List of nets of the simulation
 
-        if use_random_seed:
-                np.random.seed(seed = seed)
-                random.seed(seed)
-        else:
-                np.random.seed(int(time.time()))
-                random.seed(time.time())
+    &#34;&#34;&#34;
+    # generate new edges
+
+    if use_random_seed:
+        np.random.seed(seed = seed)
+        random.seed(seed)
+    else:
+        np.random.seed(int(time.time()))
+        random.seed(time.time())
 
 
-        # clear folder
-        file_list = os.listdir(path)
+    # clear folder
+    file_list = os.listdir(path)
+    
+    for item in file_list:
+        if item.endswith(&#34;.pickle&#34;):
+            os.remove(os.path.join(path, item))
+    
 
-        for item in file_list:
-                if item.endswith(&#34;.pickle&#34;):
-                        os.remove(os.path.join(path, item))
+    # init network
+    G = generate_network(n_of_families)
+    infection_rate = compute_IR(G, R_0, infection_duration, incubation_days)
+    init_infection(G, n_initial_infected_nodes)
+    nets = list()
 
-        # init network
-        G = generate_network(n_of_families)
-        infection_rate = compute_IR(G, R_0, infection_duration, incubation_days)
-        init_infection(G, n_initial_infected_nodes)
-        dump_network(G, path + &#34;/initial_network&#34;)
+    if use_steps:
+        for sim_index in range (0, number_of_steps):
+            report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
+                             initial_day_restriction, restriction_duration, social_distance_strictness, 
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
+            nets.append(net.copy())
+    else:
+        exposed = n_initial_infected_nodes
+        infected = 0
+        sim_index = 0
+        while((infected + exposed) != 0):
+            report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
+                             initial_day_restriction, restriction_duration, social_distance_strictness, 
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
+            nets.append(net.copy())
+            sim_index += 1
+            infected = report[&#34;I&#34;]
+            exposed = report[&#34;E&#34;]
 
-        nets = list()
-
-        if use_steps:
-                for sim_index in range (0, number_of_steps):
-                    report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
-                                     initial_day_restriction, restriction_duration, social_distance_strictness, 
-                                     restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
-                    nets.append(net)
-                    dump_network(G, path + &#34;/network{}&#34;.format(sim_index))
-        else:
-                exposed = n_initial_infected_nodes
-                infected = 0
-                sim_index = 0
-                while((infected + exposed) != 0):
-                    report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
-                                     initial_day_restriction, restriction_duration, social_distance_strictness, 
-                                     restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
-                    nets.append(net)
-                    dump_network(G, path + &#34;/network{}&#34;.format(sim_index))
-                    sim_index += 1
-                    infected = report[&#34;I&#34;]
-                    exposed = report[&#34;E&#34;]
-
-                    if infected + exposed == 0:
-                        break
-
-        print(&#34;\n Simulation ended successfully \n You can find the dumped networks in the choosen folder \n&#34;)</code></pre>
+            if infected + exposed == 0:
+                break
+    if dump:
+        try:
+            with open(Path(path + &#34;/nets.pickle&#34;), &#34;wb&#34;) as f:
+                pickle.dump(nets, f)
+        except:
+            print(&#34;Simulation is too big to be dumped, please use the return value of the function for analysis&#34;)
+            sys.exit(-1)
+    
+    return nets
+    
+    print(&#34;\n Simulation ended successfully \n You can find the dumped networks in the choosen folder \n&#34;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -468,6 +609,7 @@ Note that family contacts are not included in this reduction</dd>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="ctns.contact_network_simulator.main" href="#ctns.contact_network_simulator.main">main</a></code></li>
 <li><code><a title="ctns.contact_network_simulator.run_simulation" href="#ctns.contact_network_simulator.run_simulation">run_simulation</a></code></li>
 </ul>
 </li>
