@@ -150,12 +150,17 @@ def run_simulation(n_of_families = 500,
             with open(Path(path + "/nets.pickle"), "wb") as f:
                 pickle.dump(nets, f)
         except:
-            print("Simulation is too big to be dumped, please use the return value of the function for analysis")
-            sys.exit(-1)
-    
-    return nets
+            print("Simulation is too big to be dumped, try dumping in separated files. Note that this operation will be slow")
+            try:
+            	for i in range(len(nets)):
+            		dump_network(net, Path(path + "/network{}".format(i)))
+            except:
+            	print("Cannot dump network, the single network is too big. Please deactivate the dump option")
+            	sys.exit(-1)
     
     print("\n Simulation ended successfully \n You can find the dumped networks in the choosen folder \n")
+
+    return nets
 
 def main():
 
