@@ -7,6 +7,11 @@ with open('requirements.txt') as f:
 with open('README.md') as readme_file:
     README = readme_file.read()
 
+if os.environ.get('CI_COMMIT_TAG'):
+    version = os.environ['CI_COMMIT_TAG']
+else:
+    version = os.environ['CI_JOB_ID']
+
 setup(
   name = 'ctns',
   packages = find_packages(),
