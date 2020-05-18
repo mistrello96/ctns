@@ -5,7 +5,8 @@ stages:
 
 before_script:
    - pip install twine
-   - python setup.py sdist
+   - pip install setuptools wheel
+   - python setup.py sdist bdist_wheel
 
 deploy_production:
   stage: deploy
