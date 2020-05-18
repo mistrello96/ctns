@@ -1,7 +1,7 @@
 import igraph as ig
 import numpy as np
 from pathlib import Path
-import sys, random, os, time, gzip, pickle
+import sys, random, time, pickle
 try:
     from ctns.generator import generate_network, init_infection
     from ctns.steps import step
@@ -91,7 +91,7 @@ def run_simulation(n_of_families = 500,
         NB, if network simulation is too heavy, the dump can crash
 
     path:string
-        The path to the folder where the networks will be saved
+        The path to the file/folder where the networks will be saved
 
     Return
     ------
@@ -108,14 +108,6 @@ def run_simulation(n_of_families = 500,
     else:
         np.random.seed(int(time.time()))
         random.seed(time.time())
-
-
-    # clear folder
-    file_list = os.listdir(path)
-    
-    for item in file_list:
-        if item.endswith(".pickle"):
-            os.remove(os.path.join(path, item))
     
     # check values
     if n_of_families < 10:
@@ -192,13 +184,13 @@ def run_simulation(n_of_families = 500,
                 break
     if dump:
         try:
-            with open(Path(path + "/nets.pickle"), "wb") as f:
+            with open(Path(path + ".pickle"), "wb") as f:
                 pickle.dump(nets, f)
         except:
             print("Simulation is too big to be dumped, try dumping in separated files. Note that this operation will be slow")
             try:
             	for i in range(len(nets)):
-            		dump_network(net, Path(path + "/network{}".format(i)))
+            		dump_network(net, Path(path + "_network{}.pickle".format(i)))
             except:
             	print("Cannot dump network, the single network is too big. Please deactivate the dump option")
             	sys.exit(-1)
@@ -249,13 +241,13 @@ def main():
         use_random_seed = int(input("Press 1 use a fixed a random seed or 0 to pick a random seed: "))
         if use_random_seed:
             seed = int(input("Please insert the random seed: "))
-        path = input("Please insert the path to a folder for dumps: ")           
+        path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")
 
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed, seed, dump, path)
     else:
-        path = input("Please insert the path to a folder for dumps: ")
+        path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")
         run_simulation(path = path, dump = True)
 
 if __name__ == "__main__":

@@ -78,7 +78,7 @@ def dump_network(G, path):
     None
 
     """
-    G.write_picklez("{}.pickle".format(path))
+    G.write_picklez(path)
 
 def compute_IR(G, R_0, infection_duration, incubation_days):
     """
