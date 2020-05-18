@@ -117,6 +117,10 @@ def run_simulation(n_of_families = 500,
         if item.endswith(".pickle"):
             os.remove(os.path.join(path, item))
     
+    # make parameters consistent
+    if social_distance_strictness == 0:
+    	restriction_decreasing = False
+
 
     # init network
     G = generate_network(n_of_families)
