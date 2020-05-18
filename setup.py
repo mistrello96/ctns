@@ -15,7 +15,6 @@ else:
 setup(
   name = 'ctns',
   packages = find_packages(),
-  version = '0.2.4.1',
   scripts = ['bin/ctns', 'bin/ctns.bat','bin/ctns_run.py'],
   description = 'CTNS, Contact Tracing Network Simulator: a tool to simulate contact tracing in a population where a disease is spreading',
   long_description_content_type = "text/markdown",
