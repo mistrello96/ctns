@@ -1,4 +1,4 @@
-image: python:3.6-alpine
+image: python:slim
 
 stages:
   - deploy
