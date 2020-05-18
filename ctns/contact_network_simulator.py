@@ -118,8 +118,8 @@ def run_simulation(n_of_families = 500,
             os.remove(os.path.join(path, item))
     
     # check values
-    if n_of_families < 0:
-        print("Invalid number of families")
+    if n_of_families < 10:
+        print("Invalid number of families. Use at least 10 families")
         sys.exit()
     if use_steps:
         if number_of_steps < 0:
