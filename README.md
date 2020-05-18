@@ -43,7 +43,7 @@ ctns.bat
 
 from Windows CMD/Power Shell.
 
-Remember to specify a folder for the network dumps if needed. Note that if any previous dumps is found the selected folder, it will be overwritten.
+Remember to specify a path to a file for the network dump if needed.
 
 You can alternatively clone the repo, navigate to the ctns/ctns folder and run
 
