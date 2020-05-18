@@ -117,9 +117,50 @@ def run_simulation(n_of_families = 500,
         if item.endswith(".pickle"):
             os.remove(os.path.join(path, item))
     
-    # make parameters consistent
+    # check values
+    if n_of_families < 0:
+        print("Invalid number of families")
+        sys.exit()
+    if use_steps:
+        if number_of_steps < 0:
+            print("Invalid number of steps")
+            sys.exit()
+    if infection_duration < 0:
+        print("Invalid infection duration")
+        sys.exit()
+    if incubation_days < 0 or incubation_days >= infection_duration:
+        print("Invalid incubation duration")
+        sys.exit()
+    if initial_day_restriction < 0 :
+        print("Invalid initial day social distancing")
+        sys.exit()
+    if social_distance_strictness < 0 or social_distance_strictness > 4:
+        print("Invalid social distancing value")
+        sys.exit()
+    if n_initial_infected_nodes < 0 or n_initial_infected_nodes > n_of_families:
+        print("Invalid number of initial infected nodes")
+        sys.exit()
+    if R_0 < 0:
+        print("Invalid value of R0")
+        sys.exit()
+    if n_test < 0:
+        print("Invalid number of test per day")
+        sys.exit()
+    if not (policy_test == "Random" or policy_test == "Degree Centrality" or policy_test == "Betweenness Centrality"):
+        print("Invalid test strategy")
+        sys.exit()
+    if contact_tracking_efficiency < 0 or contact_tracking_efficiency > 1:
+        print("Invalid contact tracing efficiency")
+        sys.exit()
+    if restriction_duration < 0:
+        print("Invalid restriction restriction_duration")
+        sys.exit()
+    if restriction_duration == 0:
+        restriction_decreasing = False
+        social_distance_strictness = 0
     if social_distance_strictness == 0:
-    	restriction_decreasing = False
+        restriction_decreasing = False
+        restriction_duration = 0
 
 
     # init network
@@ -208,49 +249,7 @@ def main():
         use_random_seed = int(input("Press 1 use a fixed a random seed or 0 to pick a random seed: "))
         if use_random_seed:
             seed = int(input("Please insert the random seed: "))
-        path = input("Please insert the path to a folder for dumps: ")    
-
-        # check value
-        if n_of_families < 0:
-            print("Invalid number of families")
-            sys.exit()
-        if use_steps:
-            if number_of_steps < 0:
-                print("Invalid number of steps")
-                sys.exit()
-        if infection_duration < 0:
-            print("Invalid infection duration")
-            sys.exit()
-        if incubation_days < 0 or incubation_days >= infection_duration:
-            print("Invalid incubation duration")
-            sys.exit()
-        if initial_day_restriction < 0 :
-            print("Invalid initial day social distancing")
-            sys.exit()
-        if social_distance_strictness < 0 or social_distance_strictness > 4:
-            print("Invalid social distancing value")
-            sys.exit()
-        if n_initial_infected_nodes < 0 or n_initial_infected_nodes > n_of_families:
-            print("Invalid number of initial infected nodes")
-            sys.exit()
-        if R_0 < 0:
-            print("Invalid value of R0")
-            sys.exit()
-        if n_test < 0:
-            print("Invalid number of test per day")
-            sys.exit()
-        if not (policy_test == "Random" or policy_test == "Degree Centrality" or policy_test == "Betweenness Centrality"):
-            print("Invalid test strategy")
-            sys.exit()
-        if contact_tracking_efficiency < 0 or contact_tracking_efficiency > 1:
-            print("Invalid contact tracing efficiency")
-            sys.exit()
-        if restriction_duration < 0:
-            print("Invalid restriction restriction_duration")
-            sys.exit()
-        if restriction_duration == 0:
-            restriction_decreasing = False
-            restriction_duration = False        
+        path = input("Please insert the path to a folder for dumps: ")           
 
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
