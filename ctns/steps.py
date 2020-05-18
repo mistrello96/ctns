@@ -382,10 +382,13 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_trackin
                         possibly_quarantine.add(G.vs[edge.target].index)
                     if edge.target in found_positive:
                         possibly_quarantine.add(G.vs[edge.source].index)
-        # set differenct to remove double contacts
-
-        possibly_quarantine = random.sample(possibly_quarantine - to_quarantine, int(len(possibly_quarantine) * contact_tracking_efficiency))
-
+        
+        # set diff to remove double contacts
+        possibly_quarantine = possibly_quarantine - to_quarantine
+        if len(possibly_quarantine) > int(len(possibly_quarantine) * contact_tracking_efficiency):
+            possibly_quarantine = random.sample(possibly_quarantine, int(len(possibly_quarantine) * contact_tracking_efficiency))
+        else:
+            possibly_quarantine = list(possibly_quarantine)
         to_quarantine = list(to_quarantine) + possibly_quarantine
 
         to_quarantine = [G.vs[i] for i in to_quarantine]

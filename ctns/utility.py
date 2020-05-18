@@ -32,7 +32,7 @@ def fix_distribution_node_number(distribution, n_nodes):
         if (np.sum(refined_distribution) > n_nodes):
             refined_distribution.pop()
             break
-    refined_distribution.append(n_nodes - np.sum(refined_distribution))    
+    refined_distribution.append(int(n_nodes - np.sum(refined_distribution)))
     return refined_distribution  
 
 def reset_network(G):

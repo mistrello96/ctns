@@ -31,7 +31,6 @@ def generate_node_list_attribute(G, attribute_name, distribution):
     # extract node list and randomize
     node_list = list(G.vs)
     random.shuffle(node_list)
-
     # iterate over community
     for element in distribution:
         community_nodes = list()
