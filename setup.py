@@ -9,9 +9,13 @@ with open('README.md') as readme_file:
 
 if os.environ.get('CI_COMMIT_TAG'):
     version = os.environ['CI_COMMIT_TAG']
+    print("A")
+    print(version)
 else:
     version = os.environ['CI_JOB_ID']
-
+    print("B")
+    print(version)
+    
 setup(
   name = 'ctns',
   packages = find_packages(),
