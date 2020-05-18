@@ -7,15 +7,8 @@ with open('requirements.txt') as f:
 with open('README.md') as readme_file:
     README = readme_file.read()
 
-if os.environ.get('CI_COMMIT_TAG'):
-    version = os.environ['CI_COMMIT_TAG']
-    print("A")
-    print(version)
-else:
-    version = os.environ['CI_JOB_ID']
-    print("B")
-    print(version)
-    
+ver = os.environ['CI_COMMIT_TAG']
+
 setup(
   name = 'ctns',
   packages = find_packages(),
@@ -27,6 +20,7 @@ setup(
   author = 'Matteo Mistri, Diego Miglio',
   author_email = 'matteo.mistri1996@gmail.com',
   install_requires = required,
+  version = ver,
   url = "https://gitlab.com/mistrello96/ctns",
   download_url='https://pypi.org/project/ctns/',
 )
