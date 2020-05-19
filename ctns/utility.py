@@ -1,5 +1,6 @@
 import igraph as ig
 import random
+from pathlib import Path
 import numpy as np
 #import matplotlib.pyplot as plt
 from collections import Counter
@@ -118,7 +119,7 @@ def compute_IR(G, R_0, infection_duration, incubation_days):
 
 '''
 
-def plot_degree_dist(G, node_sociality = None, edge_category = None, title = None):
+def plot_degree_dist(G, node_sociality = None, edge_category = None, title = None, path = None):
     """
     Print degree probability distribution of the network.
     node_sociality and edge_category can be used to filter only certain types of
@@ -138,12 +139,15 @@ def plot_degree_dist(G, node_sociality = None, edge_category = None, title = Non
     title: string
         The title of the plot
 
+    path: string
+        Path to the folder where to save images
+
     Return
     ------
     None
 
     """
-    #plt.figure(figsize = (8, 6), dpi = 300)
+    plt.figure(figsize = (8, 6), dpi = 300)
     if edge_category != None:
         G = G.copy()
         toRemove = []
@@ -162,10 +166,10 @@ def plot_degree_dist(G, node_sociality = None, edge_category = None, title = Non
                 selected_nodes.append(node)
         degs = G.degree(selected_nodes) 
 
-    conuted_degs = Counter(degs)
-    for key in conuted_degs.keys():
-        conuted_degs[key] = conuted_degs[key] / len(G.vs())
-        plt.scatter(key, conuted_degs[key], marker = '.', color = "red", s = 10)
+    counted_degs = Counter(degs)
+    for key in counted_degs.keys():
+        counted_degs[key] = counted_degs[key] / len(G.vs())
+        plt.scatter(key, counted_degs[key], marker = '.', color = "red", s = 10)
     plt.xticks(fontsize = 12)
     plt.yticks(fontsize = 12)
     plt.xlabel("Degree", fontsize = 15)
@@ -175,10 +179,11 @@ def plot_degree_dist(G, node_sociality = None, edge_category = None, title = Non
     else:
         plt.title(title, fontsize = 20)
     plt.tight_layout()
-    plt.show()  
+    plt.savefig(Path(path + "/" + title + ".png"))
+    plt.savefig(Path(path + "/" +  title + ".pdf"))
 
 # Print degree distribution
-def print_degree_summary(G):
+def print_degree_summary(G, path):
     """
     Print degree probability distribution dummary of the network.
     
@@ -192,14 +197,14 @@ def print_degree_summary(G):
     None
 
     """
-    plot_degree_dist(G, title = "Degree distribution")
-    plot_degree_dist(G, node_sociality = "low", title = "Degree distribution low sociality")
-    plot_degree_dist(G, node_sociality = "medium", title = "Degree distribution medium sociality")
-    plot_degree_dist(G, node_sociality = "high", title = "Degree distribution high sociality")
+    plot_degree_dist(G, title = "Degree distribution", path = path)
+    plot_degree_dist(G, node_sociality = "low", title = "Degree distribution low sociality", path = path)
+    plot_degree_dist(G, node_sociality = "medium", title = "Degree distribution medium sociality", path = path)
+    plot_degree_dist(G, node_sociality = "high", title = "Degree distribution high sociality", path = path)
 
-    plot_degree_dist(G, edge_category = "family_contacts", title = "Degree distribution family contacts")
-    plot_degree_dist(G, edge_category = "frequent_contacts", title = "Degree distribution frequent contacts")
-    plot_degree_dist(G, edge_category = "occasional_contacts", title = "Degree distribution occasional contacts")
-    plot_degree_dist(G, edge_category = "random_contacts", title = "Degree distribution random contacts")
+    plot_degree_dist(G, edge_category = "family_contacts", title = "Degree distribution family contacts", path = path)
+    plot_degree_dist(G, edge_category = "frequent_contacts", title = "Degree distribution frequent contacts", path = path)
+    plot_degree_dist(G, edge_category = "occasional_contacts", title = "Degree distribution occasional contacts", path = path)
+    plot_degree_dist(G, edge_category = "random_contacts", title = "Degree distribution random contacts", path = path)
 
 '''
