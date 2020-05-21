@@ -38,7 +38,7 @@ def generate_family_edges(G):
 def generate_occfreq_edges(G, edge_category, restriction_value):
     """
     Create edges from the node of type edge_category
-    The number of edges is chosen according to the sociality of the node
+    The number of edges is chosen according to the sociability of the node
     
     Parameters
     ----------
@@ -63,11 +63,11 @@ def generate_occfreq_edges(G, edge_category, restriction_value):
         random.shuffle(possible_edges)
         tmp = int(len(possible_edges) / 3)
         tmp2 = int(2 * len(possible_edges) / 3)
-        if node["sociality"] == "low":
+        if node["sociability"] == "low":
             n_edges = int(random.random() * tmp)
-        if node["sociality"] == "medium":
+        if node["sociability"] == "medium":
             n_edges = tmp + int(random.random() * (tmp2 - tmp))
-        if node["sociality"] == "high":
+        if node["sociability"] == "high":
             n_edges = tmp2 + int(random.random() * (len(possible_edges) + 1 - tmp2))
         n_edges = int(n_edges * restriction_value)
 

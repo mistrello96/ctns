@@ -37,16 +37,16 @@ def generate_node_list_attribute(G, attribute_name, distribution):
         # extract community members
         for i in range(0, element):
             community_nodes.append(node_list.pop())
-        # for each node, pick a random number (proportional to sociality) of 
+        # for each node, pick a random number (proportional to sociability) of 
         # community member and create a possible link
         for node in community_nodes:
             tmp = int(math.ceil(len(community_nodes) / 3))
             tmp2 = int(math.ceil(2 * len(community_nodes) / 3))
-            if node["sociality"] == "low":
+            if node["sociability"] == "low":
                 n_contact = 1 + int(random.random() * (tmp - 1))
-            if node["sociality"] == "medium":
+            if node["sociability"] == "medium":
                 n_contact = tmp + int(random.random() * (tmp2 - tmp))
-            if node["sociality"] == "high":
+            if node["sociability"] == "high":
                 n_contact = tmp2 + int(random.random() * (len(community_nodes) + 1 - tmp2))
 
             targets = random.sample(community_nodes, n_contact)
@@ -139,17 +139,17 @@ def generate_network(n_of_families):
         node["frequent_contacts"] = list()
         node["occasional_contacts"] = list()
 
-        # setting sociality
+        # setting sociability
         if node["age"] < 6:
-            node["sociality"] = "low"
+            node["sociability"] = "low"
             node["pre_existing_conditions"] = 0
         elif node["age"] > 70:
-            node["sociality"] = np.random.choice(
+            node["sociability"] = np.random.choice(
                 ['low', 'medium', 'high'], p=[0.75, 0.23, 0.02])
             node["pre_existing_conditions"] = np.random.choice(
                 [0, 1, 2, 3], p=[0.1, 0.4, 0.3, 0.2])
         else:
-            node["sociality"] = np.random.choice(
+            node["sociability"] = np.random.choice(
                 ['low', 'medium', 'high'], p=[0.6, 0.3, 0.1])
             node["pre_existing_conditions"] = np.random.choice(
                 [0, 1, 2, 3], p=[0.6, 0.2, 0.1, 0.1])

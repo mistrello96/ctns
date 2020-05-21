@@ -119,10 +119,10 @@ def compute_IR(G, R_0, infection_duration, incubation_days):
 
 '''
 
-def plot_degree_dist(G, node_sociality = None, edge_category = None, title = None, path = None):
+def plot_degree_dist(G, node_sociability = None, edge_category = None, title = None, path = None):
     """
     Print degree probability distribution of the network.
-    node_sociality and edge_category can be used to filter only certain types of
+    node_sociability and edge_category can be used to filter only certain types of
     nodes and edges
     
     Parameters
@@ -130,8 +130,8 @@ def plot_degree_dist(G, node_sociality = None, edge_category = None, title = Non
     G: ig.Graph()
         The contact network
 
-    node_sociality: string
-        Consider only nodes that have sociality == node_sociality
+    node_sociability: string
+        Consider only nodes that have sociability == node_sociability
 
     edge_category: string
         Consider only edges that have category == edge_category
@@ -157,12 +157,12 @@ def plot_degree_dist(G, node_sociality = None, edge_category = None, title = Non
         G.delete_edges(toRemove)
 
 
-    if node_sociality == None:
+    if node_sociability == None:
         degs = G.degree()
     else:
         selected_nodes = list()
         for node in G.vs:
-            if node['sociality'] == node_sociality:
+            if node['sociability'] == node_sociability:
                 selected_nodes.append(node)
         degs = G.degree(selected_nodes) 
 
@@ -198,9 +198,9 @@ def print_degree_summary(G, path):
 
     """
     plot_degree_dist(G, title = "Degree distribution", path = path)
-    plot_degree_dist(G, node_sociality = "low", title = "Degree distribution low sociality", path = path)
-    plot_degree_dist(G, node_sociality = "medium", title = "Degree distribution medium sociality", path = path)
-    plot_degree_dist(G, node_sociality = "high", title = "Degree distribution high sociality", path = path)
+    plot_degree_dist(G, node_sociability = "low", title = "Degree distribution low sociability", path = path)
+    plot_degree_dist(G, node_sociability = "medium", title = "Degree distribution medium sociability", path = path)
+    plot_degree_dist(G, node_sociability = "high", title = "Degree distribution high sociability", path = path)
 
     plot_degree_dist(G, edge_category = "family_contacts", title = "Degree distribution family contacts", path = path)
     plot_degree_dist(G, edge_category = "frequent_contacts", title = "Degree distribution frequent contacts", path = path)

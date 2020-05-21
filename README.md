@@ -58,7 +58,7 @@ Each node will have the following relevant attributes:
 - sex -> either man or woman
 - age -> a number representing the age slice of the node (e.g., 40 represent a node with age between [40,50))
 - family_id -> id of the family of the node
-- sociality -> a value that can be either low, medium or high and represent how social(average number of edge) a node is
+- sociability -> a value that can be either low, medium or high and represent how social(average number of edge) a node is
 - pre_existing_conditions -> number of existing pathologies of the node
 - agent_status -> the status of the node in the simulation. It can be either S(susceptible), E(Exposed), I(Infective), R(Recovered) or D(Dead)
 - infected -> if the node is currenty infected or not
