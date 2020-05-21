@@ -169,7 +169,7 @@ def step_edges(G, restriction_value):
             toRemove.append(edge)
     G.delete_edges(toRemove)  
 
-def step_spread(G, incubation_days, infection_duration, infection_rate):
+def step_spread(G, incubation_days, infection_duration, transmission_rate):
     """
     Make the infection spread across the network
     
@@ -184,8 +184,8 @@ def step_spread(G, incubation_days, infection_duration, infection_rate):
     infection_duration: int
         Average total duration of the disease
     
-    infection_rate: float
-        Value of the infection_rate rate for the disease in the network
+    transmission_rate: float
+        Value of the transmission rate for the disease in the network
 
     Return
     ------
@@ -211,7 +211,7 @@ def step_spread(G, incubation_days, infection_duration, infection_rate):
             if node["agent_status"] == "I":
                 for contact in G.neighborhood(node)[1:]:
                     if G.vs[contact]["agent_status"] == "S":
-                        prob = infection_rate * G[node, contact] # access to the weight of the edge
+                        prob = transmission_rate * G[node, contact] # access to the weight of the edge
                         # has the new node been infected?
                         G.vs[contact]["agent_status"] = np.random.choice(["S", "E"], p = (1 - prob, prob))
                         if G.vs[contact]["agent_status"] == "E":
@@ -482,7 +482,7 @@ def step_vaccine(G, n_vacc, policy_vacc, vacc_pool, agent_status_report):
 
 '''
 
-def step(G, step_index, incubation_days, infection_duration, infection_rate,
+def step(G, step_index, incubation_days, infection_duration, transmission_rate,
          initial_day_restriction, restriction_duration, social_distance_strictness,
          restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency):
     """
@@ -502,8 +502,8 @@ def step(G, step_index, incubation_days, infection_duration, infection_rate,
     infection_duration: int
         Average total duration of the disease
     
-    infection_rate: float
-        Value of the infection_rate rate for the disease in the network
+    transmission_rate: float
+        Value of the transmission rate for the disease in the network
     
     initial_day_restriction: int
         Day index from when social distancing measures are applied
@@ -557,7 +557,7 @@ def step(G, step_index, incubation_days, infection_duration, infection_rate,
             step_edges(G, 1)
     
     # spread infection
-    step_spread(G, incubation_days, infection_duration, infection_rate)
+    step_spread(G, incubation_days, infection_duration, transmission_rate)
           
     # make some test on nodes     
     step_test(G, nets, incubation_days, n_test, policy_test, contact_tracking_efficiency)

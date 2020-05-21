@@ -81,9 +81,9 @@ def dump_network(G, path):
     """
     G.write_picklez(path)
 
-def compute_IR(G, R_0, infection_duration, incubation_days):
+def compute_TR(G, R_0, infection_duration, incubation_days):
     """
-    Compute the infection rate of the disease in the network.
+    Compute the transmission rate of the disease in the network.
     The factor is computed as R_0 / (average_weighted_degree * (infection_duration - incubation_days))
     
     Parameters
@@ -102,8 +102,8 @@ def compute_IR(G, R_0, infection_duration, incubation_days):
 
     Return
     ------
-    infection_rate: float
-        The infection rate for the network
+    transmission_rate: float
+        The transmission rate for the network
 
     """
     avr_deg = list()

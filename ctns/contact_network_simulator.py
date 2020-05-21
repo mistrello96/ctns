@@ -5,11 +5,11 @@ import sys, random, time, pickle
 try:
     from ctns.generator import generate_network, init_infection
     from ctns.steps import step
-    from ctns.utility import dump_network, compute_IR
+    from ctns.utility import dump_network, compute_TR
 except ImportError as e:
     from generator import generate_network, init_infection
     from steps import step
-    from utility import dump_network, compute_IR
+    from utility import dump_network, compute_TR
 
 def run_simulation(n_of_families = 500,
     use_steps = True,
@@ -157,13 +157,13 @@ def run_simulation(n_of_families = 500,
 
     # init network
     G = generate_network(n_of_families)
-    infection_rate = compute_IR(G, R_0, infection_duration, incubation_days)
+    transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
     init_infection(G, n_initial_infected_nodes)
     nets = list()
 
     if use_steps:
         for sim_index in range (0, number_of_steps):
-            report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
+            report, net= step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
             nets.append(net.copy())
@@ -172,7 +172,7 @@ def run_simulation(n_of_families = 500,
         infected = 0
         sim_index = 0
         while((infected + exposed) != 0):
-            report, net= step(G, sim_index, incubation_days, infection_duration, infection_rate,
+            report, net= step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
             nets.append(net.copy())
