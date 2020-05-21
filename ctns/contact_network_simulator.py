@@ -195,7 +195,7 @@ def run_simulation(n_of_families = 500,
             	print("Cannot dump network, the single network is too big. Please deactivate the dump option")
             	sys.exit(-1)
     
-    print("\n Simulation ended successfully \n You can find the dumped networks in the choosen folder \n")
+    print("\n Simulation ended successfully \n")
 
     return nets
 
