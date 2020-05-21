@@ -26,6 +26,7 @@
 </summary>
 <pre><code class="python">import igraph as ig
 import random
+from pathlib import Path
 import numpy as np
 #import matplotlib.pyplot as plt
 from collections import Counter
@@ -58,7 +59,7 @@ def fix_distribution_node_number(distribution, n_nodes):
         if (np.sum(refined_distribution) &gt; n_nodes):
             refined_distribution.pop()
             break
-    refined_distribution.append(n_nodes - np.sum(refined_distribution))    
+    refined_distribution.append(int(n_nodes - np.sum(refined_distribution)))
     return refined_distribution  
 
 def reset_network(G):
@@ -104,11 +105,11 @@ def dump_network(G, path):
     None
 
     &#34;&#34;&#34;
-    G.write_picklez(&#34;{}.pickle&#34;.format(path))
+    G.write_picklez(path)
 
-def compute_IR(G, R_0, infection_duration, incubation_days):
+def compute_TR(G, R_0, infection_duration, incubation_days):
     &#34;&#34;&#34;
-    Compute the infection rate of the disease in the network.
+    Compute the transmission rate of the disease in the network.
     The factor is computed as R_0 / (average_weighted_degree * (infection_duration - incubation_days))
     
     Parameters
@@ -127,8 +128,8 @@ def compute_IR(G, R_0, infection_duration, incubation_days):
 
     Return
     ------
-    infection_rate: float
-        The infection rate for the network
+    transmission_rate: float
+        The transmission rate for the network
 
     &#34;&#34;&#34;
     avr_deg = list()
@@ -144,10 +145,10 @@ def compute_IR(G, R_0, infection_duration, incubation_days):
 
 &#39;&#39;&#39;
 
-def plot_degree_dist(G, node_sociality = None, edge_category = None, title = None):
+def plot_degree_dist(G, node_sociability = None, edge_category = None, title = None, path = None):
     &#34;&#34;&#34;
     Print degree probability distribution of the network.
-    node_sociality and edge_category can be used to filter only certain types of
+    node_sociability and edge_category can be used to filter only certain types of
     nodes and edges
     
     Parameters
@@ -155,8 +156,8 @@ def plot_degree_dist(G, node_sociality = None, edge_category = None, title = Non
     G: ig.Graph()
         The contact network
 
-    node_sociality: string
-        Consider only nodes that have sociality == node_sociality
+    node_sociability: string
+        Consider only nodes that have sociability == node_sociability
 
     edge_category: string
         Consider only edges that have category == edge_category
@@ -164,12 +165,15 @@ def plot_degree_dist(G, node_sociality = None, edge_category = None, title = Non
     title: string
         The title of the plot
 
+    path: string
+        Path to the folder where to save images
+
     Return
     ------
     None
 
     &#34;&#34;&#34;
-    #plt.figure(figsize = (8, 6), dpi = 300)
+    plt.figure(figsize = (8, 6), dpi = 300)
     if edge_category != None:
         G = G.copy()
         toRemove = []
@@ -179,19 +183,19 @@ def plot_degree_dist(G, node_sociality = None, edge_category = None, title = Non
         G.delete_edges(toRemove)
 
 
-    if node_sociality == None:
+    if node_sociability == None:
         degs = G.degree()
     else:
         selected_nodes = list()
         for node in G.vs:
-            if node[&#39;sociality&#39;] == node_sociality:
+            if node[&#39;sociability&#39;] == node_sociability:
                 selected_nodes.append(node)
         degs = G.degree(selected_nodes) 
 
-    conuted_degs = Counter(degs)
-    for key in conuted_degs.keys():
-        conuted_degs[key] = conuted_degs[key] / len(G.vs())
-        plt.scatter(key, conuted_degs[key], marker = &#39;.&#39;, color = &#34;red&#34;, s = 10)
+    counted_degs = Counter(degs)
+    for key in counted_degs.keys():
+        counted_degs[key] = counted_degs[key] / len(G.vs())
+        plt.scatter(key, counted_degs[key], marker = &#39;.&#39;, color = &#34;red&#34;, s = 10)
     plt.xticks(fontsize = 12)
     plt.yticks(fontsize = 12)
     plt.xlabel(&#34;Degree&#34;, fontsize = 15)
@@ -201,10 +205,11 @@ def plot_degree_dist(G, node_sociality = None, edge_category = None, title = Non
     else:
         plt.title(title, fontsize = 20)
     plt.tight_layout()
-    plt.show()  
+    plt.savefig(Path(path + &#34;/&#34; + title + &#34;.png&#34;))
+    plt.savefig(Path(path + &#34;/&#34; +  title + &#34;.pdf&#34;))
 
 # Print degree distribution
-def print_degree_summary(G):
+def print_degree_summary(G, path):
     &#34;&#34;&#34;
     Print degree probability distribution dummary of the network.
     
@@ -218,15 +223,15 @@ def print_degree_summary(G):
     None
 
     &#34;&#34;&#34;
-    plot_degree_dist(G, title = &#34;Degree distribution&#34;)
-    plot_degree_dist(G, node_sociality = &#34;low&#34;, title = &#34;Degree distribution low sociality&#34;)
-    plot_degree_dist(G, node_sociality = &#34;medium&#34;, title = &#34;Degree distribution medium sociality&#34;)
-    plot_degree_dist(G, node_sociality = &#34;high&#34;, title = &#34;Degree distribution high sociality&#34;)
+    plot_degree_dist(G, title = &#34;Degree distribution&#34;, path = path)
+    plot_degree_dist(G, node_sociability = &#34;low&#34;, title = &#34;Degree distribution low sociability&#34;, path = path)
+    plot_degree_dist(G, node_sociability = &#34;medium&#34;, title = &#34;Degree distribution medium sociability&#34;, path = path)
+    plot_degree_dist(G, node_sociability = &#34;high&#34;, title = &#34;Degree distribution high sociability&#34;, path = path)
 
-    plot_degree_dist(G, edge_category = &#34;family_contacts&#34;, title = &#34;Degree distribution family contacts&#34;)
-    plot_degree_dist(G, edge_category = &#34;frequent_contacts&#34;, title = &#34;Degree distribution frequent contacts&#34;)
-    plot_degree_dist(G, edge_category = &#34;occasional_contacts&#34;, title = &#34;Degree distribution occasional contacts&#34;)
-    plot_degree_dist(G, edge_category = &#34;random_contacts&#34;, title = &#34;Degree distribution random contacts&#34;)
+    plot_degree_dist(G, edge_category = &#34;family_contacts&#34;, title = &#34;Degree distribution family contacts&#34;, path = path)
+    plot_degree_dist(G, edge_category = &#34;frequent_contacts&#34;, title = &#34;Degree distribution frequent contacts&#34;, path = path)
+    plot_degree_dist(G, edge_category = &#34;occasional_contacts&#34;, title = &#34;Degree distribution occasional contacts&#34;, path = path)
+    plot_degree_dist(G, edge_category = &#34;random_contacts&#34;, title = &#34;Degree distribution random contacts&#34;, path = path)
 
 &#39;&#39;&#39;</code></pre>
 </details>
@@ -238,11 +243,11 @@ def print_degree_summary(G):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="ctns.utility.compute_IR"><code class="name flex">
-<span>def <span class="ident">compute_IR</span></span>(<span>G, R_0, infection_duration, incubation_days)</span>
+<dt id="ctns.utility.compute_TR"><code class="name flex">
+<span>def <span class="ident">compute_TR</span></span>(<span>G, R_0, infection_duration, incubation_days)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute the infection rate of the disease in the network.
+<div class="desc"><p>Compute the transmission rate of the disease in the network.
 The factor is computed as R_0 / (average_weighted_degree * (infection_duration - incubation_days))</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -256,15 +261,15 @@ The factor is computed as R_0 / (average_weighted_degree * (infection_duration -
 <dd>Average number of days where the patient is not infective</dd>
 </dl>
 <h2 id="return">Return</h2>
-<p>infection_rate: float
-The infection rate for the network</p></div>
+<p>transmission_rate: float
+The transmission rate for the network</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def compute_IR(G, R_0, infection_duration, incubation_days):
+<pre><code class="python">def compute_TR(G, R_0, infection_duration, incubation_days):
     &#34;&#34;&#34;
-    Compute the infection rate of the disease in the network.
+    Compute the transmission rate of the disease in the network.
     The factor is computed as R_0 / (average_weighted_degree * (infection_duration - incubation_days))
     
     Parameters
@@ -283,8 +288,8 @@ The infection rate for the network</p></div>
 
     Return
     ------
-    infection_rate: float
-        The infection rate for the network
+    transmission_rate: float
+        The transmission rate for the network
 
     &#34;&#34;&#34;
     avr_deg = list()
@@ -335,7 +340,7 @@ N.B.: if you need to reload the network after dump, use only pickle, not json </
     None
 
     &#34;&#34;&#34;
-    G.write_picklez(&#34;{}.pickle&#34;.format(path))</code></pre>
+    G.write_picklez(path)</code></pre>
 </details>
 </dd>
 <dt id="ctns.utility.fix_distribution_node_number"><code class="name flex">
@@ -381,7 +386,7 @@ Distribution where the sum of elements is equal to n_nodes</p></div>
         if (np.sum(refined_distribution) &gt; n_nodes):
             refined_distribution.pop()
             break
-    refined_distribution.append(n_nodes - np.sum(refined_distribution))    
+    refined_distribution.append(int(n_nodes - np.sum(refined_distribution)))
     return refined_distribution  </code></pre>
 </details>
 </dd>
@@ -447,7 +452,7 @@ related attributes of each node to the default value</p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="ctns.utility.compute_IR" href="#ctns.utility.compute_IR">compute_IR</a></code></li>
+<li><code><a title="ctns.utility.compute_TR" href="#ctns.utility.compute_TR">compute_TR</a></code></li>
 <li><code><a title="ctns.utility.dump_network" href="#ctns.utility.dump_network">dump_network</a></code></li>
 <li><code><a title="ctns.utility.fix_distribution_node_number" href="#ctns.utility.fix_distribution_node_number">fix_distribution_node_number</a></code></li>
 <li><code><a title="ctns.utility.reset_network" href="#ctns.utility.reset_network">reset_network</a></code></li>

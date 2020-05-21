@@ -57,23 +57,22 @@ def generate_node_list_attribute(G, attribute_name, distribution):
     # extract node list and randomize
     node_list = list(G.vs)
     random.shuffle(node_list)
-
     # iterate over community
     for element in distribution:
         community_nodes = list()
         # extract community members
         for i in range(0, element):
             community_nodes.append(node_list.pop())
-        # for each node, pick a random number (proportional to sociality) of 
+        # for each node, pick a random number (proportional to sociability) of 
         # community member and create a possible link
         for node in community_nodes:
             tmp = int(math.ceil(len(community_nodes) / 3))
             tmp2 = int(math.ceil(2 * len(community_nodes) / 3))
-            if node[&#34;sociality&#34;] == &#34;low&#34;:
+            if node[&#34;sociability&#34;] == &#34;low&#34;:
                 n_contact = 1 + int(random.random() * (tmp - 1))
-            if node[&#34;sociality&#34;] == &#34;medium&#34;:
+            if node[&#34;sociability&#34;] == &#34;medium&#34;:
                 n_contact = tmp + int(random.random() * (tmp2 - tmp))
-            if node[&#34;sociality&#34;] == &#34;high&#34;:
+            if node[&#34;sociability&#34;] == &#34;high&#34;:
                 n_contact = tmp2 + int(random.random() * (len(community_nodes) + 1 - tmp2))
 
             targets = random.sample(community_nodes, n_contact)
@@ -166,17 +165,17 @@ def generate_network(n_of_families):
         node[&#34;frequent_contacts&#34;] = list()
         node[&#34;occasional_contacts&#34;] = list()
 
-        # setting sociality
+        # setting sociability
         if node[&#34;age&#34;] &lt; 6:
-            node[&#34;sociality&#34;] = &#34;low&#34;
+            node[&#34;sociability&#34;] = &#34;low&#34;
             node[&#34;pre_existing_conditions&#34;] = 0
         elif node[&#34;age&#34;] &gt; 70:
-            node[&#34;sociality&#34;] = np.random.choice(
+            node[&#34;sociability&#34;] = np.random.choice(
                 [&#39;low&#39;, &#39;medium&#39;, &#39;high&#39;], p=[0.75, 0.23, 0.02])
             node[&#34;pre_existing_conditions&#34;] = np.random.choice(
                 [0, 1, 2, 3], p=[0.1, 0.4, 0.3, 0.2])
         else:
-            node[&#34;sociality&#34;] = np.random.choice(
+            node[&#34;sociability&#34;] = np.random.choice(
                 [&#39;low&#39;, &#39;medium&#39;, &#39;high&#39;], p=[0.6, 0.3, 0.1])
             node[&#34;pre_existing_conditions&#34;] = np.random.choice(
                 [0, 1, 2, 3], p=[0.6, 0.2, 0.1, 0.1])
@@ -324,17 +323,17 @@ The contact network</p></div>
         node[&#34;frequent_contacts&#34;] = list()
         node[&#34;occasional_contacts&#34;] = list()
 
-        # setting sociality
+        # setting sociability
         if node[&#34;age&#34;] &lt; 6:
-            node[&#34;sociality&#34;] = &#34;low&#34;
+            node[&#34;sociability&#34;] = &#34;low&#34;
             node[&#34;pre_existing_conditions&#34;] = 0
         elif node[&#34;age&#34;] &gt; 70:
-            node[&#34;sociality&#34;] = np.random.choice(
+            node[&#34;sociability&#34;] = np.random.choice(
                 [&#39;low&#39;, &#39;medium&#39;, &#39;high&#39;], p=[0.75, 0.23, 0.02])
             node[&#34;pre_existing_conditions&#34;] = np.random.choice(
                 [0, 1, 2, 3], p=[0.1, 0.4, 0.3, 0.2])
         else:
-            node[&#34;sociality&#34;] = np.random.choice(
+            node[&#34;sociability&#34;] = np.random.choice(
                 [&#39;low&#39;, &#39;medium&#39;, &#39;high&#39;], p=[0.6, 0.3, 0.1])
             node[&#34;pre_existing_conditions&#34;] = np.random.choice(
                 [0, 1, 2, 3], p=[0.6, 0.2, 0.1, 0.1])
@@ -477,23 +476,22 @@ This list is used to draw the new edges for the node in the step function</p>
     # extract node list and randomize
     node_list = list(G.vs)
     random.shuffle(node_list)
-
     # iterate over community
     for element in distribution:
         community_nodes = list()
         # extract community members
         for i in range(0, element):
             community_nodes.append(node_list.pop())
-        # for each node, pick a random number (proportional to sociality) of 
+        # for each node, pick a random number (proportional to sociability) of 
         # community member and create a possible link
         for node in community_nodes:
             tmp = int(math.ceil(len(community_nodes) / 3))
             tmp2 = int(math.ceil(2 * len(community_nodes) / 3))
-            if node[&#34;sociality&#34;] == &#34;low&#34;:
+            if node[&#34;sociability&#34;] == &#34;low&#34;:
                 n_contact = 1 + int(random.random() * (tmp - 1))
-            if node[&#34;sociality&#34;] == &#34;medium&#34;:
+            if node[&#34;sociability&#34;] == &#34;medium&#34;:
                 n_contact = tmp + int(random.random() * (tmp2 - tmp))
-            if node[&#34;sociality&#34;] == &#34;high&#34;:
+            if node[&#34;sociability&#34;] == &#34;high&#34;:
                 n_contact = tmp2 + int(random.random() * (len(community_nodes) + 1 - tmp2))
 
             targets = random.sample(community_nodes, n_contact)
