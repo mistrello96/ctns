@@ -362,7 +362,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_trackin
                 node["test_validity"] = incubation_days
     
     # to_quarantine will contain family contacts (quarantine 100%), 
-    # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficency
+    # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficiency
 
     if len(found_positive) > 0:
         to_quarantine = set()
