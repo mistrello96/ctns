@@ -25,7 +25,7 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import igraph as ig
-import random
+import random, pickle
 from pathlib import Path
 import numpy as np
 #import matplotlib.pyplot as plt
@@ -53,6 +53,7 @@ def fix_distribution_node_number(distribution, n_nodes):
         Distribution where the sum of elements is equal to n_nodes
 
     &#34;&#34;&#34;
+
     refined_distribution = list()
     while True:
         refined_distribution.append(distribution.pop())
@@ -77,6 +78,7 @@ def reset_network(G):
     None
 
     &#34;&#34;&#34;
+
     G.delete_edges(list(G.es))
     for node in G.vs:
         node[&#34;agent_status&#34;] = &#39;S&#39;
@@ -88,24 +90,53 @@ def reset_network(G):
         node[&#34;test_result&#34;] = -1
         node[&#34;symptoms&#34;] = list()  
 
-def dump_network(G, path):
+def dump_simulation(nets, path, dump_type):
     &#34;&#34;&#34;
-    Dump the contact network to a file
-    N.B.: if you need to reload the network after dump, use only pickle, not json 
+    Dump the simulation to a pickle file
     
     Parameters
     ----------
-    G: ig.Graph()
-        The contact network
+    nets: list
+        List of ig.Graph()
 
     path: string
         The file path
+
+    dump_type: string
+        Can be either [&#34;full&#34;, &#34;light&#34;]. In the first case, the full simulation is dumped.
+        Otherwise, only a report about node status is saved
+
     Return
     ------
-    None
+    None. The function saves a picke file containing:
+        - a list of ig.Graph() if dump_type is full
+        - a dict[i][j][attribute] where i is the step index, j is the node index and attribute can either be [agent_status, test_result, quarantine]
 
     &#34;&#34;&#34;
-    G.write_picklez(path)
+
+    if dump_type == &#34;full&#34;:
+        try:
+            with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
+                pickle.dump(nets, f, protocol = pickle.HIGHEST_PROTOCOL)
+        except:
+            print(&#34;Simulation is too big to be dumped, try dumping in separated files. Note that this operation will be slow&#34;)
+            try:
+                for i in range(len(nets)):
+                    net.write_picklez(fname = Path(path + &#34;_network{}.pickle&#34;.format(i)), version = pickle.HIGHEST_PROTOCOL)
+            except:
+                print(&#34;Cannot dump network, the single network is too big. Please deactivate the dump option&#34;)
+                sys.exit(-1)
+    else:
+        to_dump = dict()
+        for i in range(len(nets)):
+            to_dump[i] = dict()
+            for j in range(len(list(nets[i].vs))):
+                to_dump[i][j] = dict()
+                to_dump[i][j][&#34;agent_status&#34;] = nets[i].vs[j][&#34;agent_status&#34;]
+                to_dump[i][j][&#34;test_result&#34;] = nets[i].vs[j][&#34;test_result&#34;]
+                to_dump[i][j][&#34;quarantine&#34;] = nets[i].vs[j][&#34;quarantine&#34;]
+        with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
+            pickle.dump(to_dump, f, protocol = pickle.HIGHEST_PROTOCOL)
 
 def compute_TR(G, R_0, infection_duration, incubation_days):
     &#34;&#34;&#34;
@@ -132,6 +163,7 @@ def compute_TR(G, R_0, infection_duration, incubation_days):
         The transmission rate for the network
 
     &#34;&#34;&#34;
+
     avr_deg = list()
     # compute average weighted degree on 20 steps
     for i in range (20):
@@ -173,6 +205,7 @@ def plot_degree_dist(G, node_sociability = None, edge_category = None, title = N
     None
 
     &#34;&#34;&#34;
+
     plt.figure(figsize = (8, 6), dpi = 300)
     if edge_category != None:
         G = G.copy()
@@ -223,6 +256,7 @@ def print_degree_summary(G, path):
     None
 
     &#34;&#34;&#34;
+    
     plot_degree_dist(G, title = &#34;Degree distribution&#34;, path = path)
     plot_degree_dist(G, node_sociability = &#34;low&#34;, title = &#34;Degree distribution low sociability&#34;, path = path)
     plot_degree_dist(G, node_sociability = &#34;medium&#34;, title = &#34;Degree distribution medium sociability&#34;, path = path)
@@ -292,6 +326,7 @@ The transmission rate for the network</p></div>
         The transmission rate for the network
 
     &#34;&#34;&#34;
+
     avr_deg = list()
     # compute average weighted degree on 20 steps
     for i in range (20):
@@ -304,43 +339,76 @@ The transmission rate for the network</p></div>
     return R_0 /((infection_duration - incubation_days) * (sum(avr_deg) / len(avr_deg)))</code></pre>
 </details>
 </dd>
-<dt id="ctns.utility.dump_network"><code class="name flex">
-<span>def <span class="ident">dump_network</span></span>(<span>G, path)</span>
+<dt id="ctns.utility.dump_simulation"><code class="name flex">
+<span>def <span class="ident">dump_simulation</span></span>(<span>nets, path, dump_type)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Dump the contact network to a file
-N.B.: if you need to reload the network after dump, use only pickle, not json </p>
+<div class="desc"><p>Dump the simulation to a pickle file</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
-<dd>The contact network</dd>
+<dt><strong><code>nets</code></strong> :&ensp;<code>list</code></dt>
+<dd>List of ig.Graph()</dd>
 <dt><strong><code>path</code></strong> :&ensp;<code>string</code></dt>
 <dd>The file path</dd>
+<dt><strong><code>dump_type</code></strong> :&ensp;<code>string</code></dt>
+<dd>Can be either ["full", "light"]. In the first case, the full simulation is dumped.
+Otherwise, only a report about node status is saved</dd>
 </dl>
 <h2 id="return">Return</h2>
-<p>None</p></div>
+<p>None. The function saves a picke file containing:
+- a list of ig.Graph() if dump_type is full
+- a dict[i][j][attribute] where i is the step index, j is the node index and attribute can either be [agent_status, test_result, quarantine]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def dump_network(G, path):
+<pre><code class="python">def dump_simulation(nets, path, dump_type):
     &#34;&#34;&#34;
-    Dump the contact network to a file
-    N.B.: if you need to reload the network after dump, use only pickle, not json 
+    Dump the simulation to a pickle file
     
     Parameters
     ----------
-    G: ig.Graph()
-        The contact network
+    nets: list
+        List of ig.Graph()
 
     path: string
         The file path
+
+    dump_type: string
+        Can be either [&#34;full&#34;, &#34;light&#34;]. In the first case, the full simulation is dumped.
+        Otherwise, only a report about node status is saved
+
     Return
     ------
-    None
+    None. The function saves a picke file containing:
+        - a list of ig.Graph() if dump_type is full
+        - a dict[i][j][attribute] where i is the step index, j is the node index and attribute can either be [agent_status, test_result, quarantine]
 
     &#34;&#34;&#34;
-    G.write_picklez(path)</code></pre>
+
+    if dump_type == &#34;full&#34;:
+        try:
+            with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
+                pickle.dump(nets, f, protocol = pickle.HIGHEST_PROTOCOL)
+        except:
+            print(&#34;Simulation is too big to be dumped, try dumping in separated files. Note that this operation will be slow&#34;)
+            try:
+                for i in range(len(nets)):
+                    net.write_picklez(fname = Path(path + &#34;_network{}.pickle&#34;.format(i)), version = pickle.HIGHEST_PROTOCOL)
+            except:
+                print(&#34;Cannot dump network, the single network is too big. Please deactivate the dump option&#34;)
+                sys.exit(-1)
+    else:
+        to_dump = dict()
+        for i in range(len(nets)):
+            to_dump[i] = dict()
+            for j in range(len(list(nets[i].vs))):
+                to_dump[i][j] = dict()
+                to_dump[i][j][&#34;agent_status&#34;] = nets[i].vs[j][&#34;agent_status&#34;]
+                to_dump[i][j][&#34;test_result&#34;] = nets[i].vs[j][&#34;test_result&#34;]
+                to_dump[i][j][&#34;quarantine&#34;] = nets[i].vs[j][&#34;quarantine&#34;]
+        with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
+            pickle.dump(to_dump, f, protocol = pickle.HIGHEST_PROTOCOL)</code></pre>
 </details>
 </dd>
 <dt id="ctns.utility.fix_distribution_node_number"><code class="name flex">
@@ -380,6 +448,7 @@ Distribution where the sum of elements is equal to n_nodes</p></div>
         Distribution where the sum of elements is equal to n_nodes
 
     &#34;&#34;&#34;
+
     refined_distribution = list()
     while True:
         refined_distribution.append(distribution.pop())
@@ -422,6 +491,7 @@ related attributes of each node to the default value</p>
     None
 
     &#34;&#34;&#34;
+
     G.delete_edges(list(G.es))
     for node in G.vs:
         node[&#34;agent_status&#34;] = &#39;S&#39;
@@ -453,7 +523,7 @@ related attributes of each node to the default value</p>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="ctns.utility.compute_TR" href="#ctns.utility.compute_TR">compute_TR</a></code></li>
-<li><code><a title="ctns.utility.dump_network" href="#ctns.utility.dump_network">dump_network</a></code></li>
+<li><code><a title="ctns.utility.dump_simulation" href="#ctns.utility.dump_simulation">dump_simulation</a></code></li>
 <li><code><a title="ctns.utility.fix_distribution_node_number" href="#ctns.utility.fix_distribution_node_number">fix_distribution_node_number</a></code></li>
 <li><code><a title="ctns.utility.reset_network" href="#ctns.utility.reset_network">reset_network</a></code></li>
 </ul>

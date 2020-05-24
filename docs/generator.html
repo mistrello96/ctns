@@ -54,6 +54,7 @@ def generate_node_list_attribute(G, attribute_name, distribution):
     None
 
     &#34;&#34;&#34;
+
     # extract node list and randomize
     node_list = list(G.vs)
     random.shuffle(node_list)
@@ -99,6 +100,7 @@ def generate_node_family_attribute(G, distribution):
     None
 
     &#34;&#34;&#34;
+
     node_counter = 0;
     for i in range(len(distribution)):
         family_nodes = list(range(node_counter, node_counter + distribution[i]))
@@ -238,6 +240,7 @@ def init_infection(G, n_initial_infected_nodes):
     None
 
     &#34;&#34;&#34;
+    
     for node in random.sample(list(G.vs), n_initial_infected_nodes):
         node[&#34;agent_status&#34;] = &#34;E&#34;
         node[&#34;infected&#34;] = True
@@ -417,6 +420,7 @@ interaction with family and a family ID.</p>
     None
 
     &#34;&#34;&#34;
+
     node_counter = 0;
     for i in range(len(distribution)):
         family_nodes = list(range(node_counter, node_counter + distribution[i]))
@@ -473,6 +477,7 @@ This list is used to draw the new edges for the node in the step function</p>
     None
 
     &#34;&#34;&#34;
+
     # extract node list and randomize
     node_list = list(G.vs)
     random.shuffle(node_list)
@@ -536,6 +541,7 @@ This list is used to draw the new edges for the node in the step function</p>
     None
 
     &#34;&#34;&#34;
+    
     for node in random.sample(list(G.vs), n_initial_infected_nodes):
         node[&#34;agent_status&#34;] = &#34;E&#34;
         node[&#34;infected&#34;] = True

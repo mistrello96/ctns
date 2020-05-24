@@ -43,6 +43,7 @@ def generate_family_edges(G):
     None
 
     &#34;&#34;&#34;
+
     toAdd = []
 
     for node in G.vs:
@@ -82,6 +83,7 @@ def generate_occfreq_edges(G, edge_category, restriction_value):
     None
 
     &#34;&#34;&#34;
+
     toAdd = []
 
     for node in G.vs:
@@ -134,6 +136,7 @@ def generate_random_edges(G, number_of_random_edges, restriction_value):
     None
 
     &#34;&#34;&#34;
+
     toAdd = []
     number_of_random_edges = int(number_of_random_edges * restriction_value)
     edge_list = np.random.randint(0, len(list(G.vs)) - 1, 2 * number_of_random_edges)
@@ -158,8 +161,7 @@ def generate_random_edges(G, number_of_random_edges, restriction_value):
 
 def step_edges(G, restriction_value):
     &#34;&#34;&#34;
-    Remove old edges
-    Create new edges
+    Removes old edges and creates new edges
     
     Parameters
     ----------
@@ -218,6 +220,7 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate):
     None
     
     &#34;&#34;&#34;
+
     for node in G.vs:
         # update parameters if node is infected
         if node[&#34;infected&#34;] == True:
@@ -388,7 +391,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_trackin
                 node[&#34;test_validity&#34;] = incubation_days
     
     # to_quarantine will contain family contacts (quarantine 100%), 
-    # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficency
+    # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficiency
 
     if len(found_positive) &gt; 0:
         to_quarantine = set()
@@ -429,8 +432,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_trackin
 &#39;&#39;&#39;
 def step_vaccine(G, n_vacc, policy_vacc, vacc_pool, agent_status_report):
     &#34;&#34;&#34;
-    Make attributes of nodes consistent
-    Make the infection spread across the network
+    Vaccine some individuals in the network
     
     Parameters
     ----------
@@ -566,6 +568,7 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
         The contact network
         
     &#34;&#34;&#34;
+
     # generate new edges
     if not restriction_duration:
         if step_index &gt;= initial_day_restriction:
@@ -627,6 +630,7 @@ def compute_sd_reduction(step_index, initial_day_restriction, restriction_durati
         Updated value for social_distance_strictness
         
     &#34;&#34;&#34;
+    
     default_days = restriction_duration // social_distance_strictness
     spare_days = restriction_duration - default_days * social_distance_strictness
 
@@ -713,6 +717,7 @@ Updated value for social_distance_strictness</p></div>
         Updated value for social_distance_strictness
         
     &#34;&#34;&#34;
+    
     default_days = restriction_duration // social_distance_strictness
     spare_days = restriction_duration - default_days * social_distance_strictness
 
@@ -770,6 +775,7 @@ Updated value for social_distance_strictness</p></div>
     None
 
     &#34;&#34;&#34;
+
     toAdd = []
 
     for node in G.vs:
@@ -831,6 +837,7 @@ The number of edges is chosen according to the sociability of the node</p>
     None
 
     &#34;&#34;&#34;
+
     toAdd = []
 
     for node in G.vs:
@@ -904,6 +911,7 @@ The number of edges is chosen according to the sociability of the node</p>
     None
 
     &#34;&#34;&#34;
+
     toAdd = []
     number_of_random_edges = int(number_of_random_edges * restriction_value)
     edge_list = np.random.randint(0, len(list(G.vs)) - 1, 2 * number_of_random_edges)
@@ -1030,6 +1038,7 @@ The contact network</p></div>
         The contact network
         
     &#34;&#34;&#34;
+
     # generate new edges
     if not restriction_duration:
         if step_index &gt;= initial_day_restriction:
@@ -1069,8 +1078,7 @@ The contact network</p></div>
 <span>def <span class="ident">step_edges</span></span>(<span>G, restriction_value)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Remove old edges
-Create new edges</p>
+<div class="desc"><p>Removes old edges and creates new edges</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>G</code></strong> :&ensp;<code>ig.Graph()</code></dt>
@@ -1086,8 +1094,7 @@ Create new edges</p>
 </summary>
 <pre><code class="python">def step_edges(G, restriction_value):
     &#34;&#34;&#34;
-    Remove old edges
-    Create new edges
+    Removes old edges and creates new edges
     
     Parameters
     ----------
@@ -1169,6 +1176,7 @@ Create new edges</p>
     None
     
     &#34;&#34;&#34;
+
     for node in G.vs:
         # update parameters if node is infected
         if node[&#34;infected&#34;] == True:
@@ -1367,7 +1375,7 @@ Can be ["Random, Degree Centrality, Betweenness Centrality"]</dd>
                 node[&#34;test_validity&#34;] = incubation_days
     
     # to_quarantine will contain family contacts (quarantine 100%), 
-    # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficency
+    # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficiency
 
     if len(found_positive) &gt; 0:
         to_quarantine = set()
