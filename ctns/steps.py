@@ -17,6 +17,7 @@ def generate_family_edges(G):
     None
 
     """
+
     toAdd = []
 
     for node in G.vs:
@@ -56,6 +57,7 @@ def generate_occfreq_edges(G, edge_category, restriction_value):
     None
 
     """
+
     toAdd = []
 
     for node in G.vs:
@@ -108,6 +110,7 @@ def generate_random_edges(G, number_of_random_edges, restriction_value):
     None
 
     """
+
     toAdd = []
     number_of_random_edges = int(number_of_random_edges * restriction_value)
     edge_list = np.random.randint(0, len(list(G.vs)) - 1, 2 * number_of_random_edges)
@@ -132,8 +135,7 @@ def generate_random_edges(G, number_of_random_edges, restriction_value):
 
 def step_edges(G, restriction_value):
     """
-    Remove old edges
-    Create new edges
+    Removes old edges and creates new edges
     
     Parameters
     ----------
@@ -192,6 +194,7 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate):
     None
     
     """
+
     for node in G.vs:
         # update parameters if node is infected
         if node["infected"] == True:
@@ -403,8 +406,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_trackin
 '''
 def step_vaccine(G, n_vacc, policy_vacc, vacc_pool, agent_status_report):
     """
-    Make attributes of nodes consistent
-    Make the infection spread across the network
+    Vaccine some individuals in the network
     
     Parameters
     ----------
@@ -540,6 +542,7 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
         The contact network
         
     """
+
     # generate new edges
     if not restriction_duration:
         if step_index >= initial_day_restriction:
@@ -601,6 +604,7 @@ def compute_sd_reduction(step_index, initial_day_restriction, restriction_durati
         Updated value for social_distance_strictness
         
     """
+    
     default_days = restriction_duration // social_distance_strictness
     spare_days = restriction_duration - default_days * social_distance_strictness
 

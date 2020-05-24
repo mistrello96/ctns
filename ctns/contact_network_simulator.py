@@ -1,15 +1,15 @@
 import igraph as ig
 import numpy as np
 from pathlib import Path
-import sys, random, time, pickle
+import sys, random, time
 try:
     from ctns.generator import generate_network, init_infection
     from ctns.steps import step
-    from ctns.utility import dump_network, compute_TR
+    from ctns.utility import dump_simulation, compute_TR
 except ImportError as e:
     from generator import generate_network, init_infection
     from steps import step
-    from utility import dump_network, compute_TR
+    from utility import dump_simulation, compute_TR
 
 def run_simulation(n_of_families = 500,
     use_steps = True,
@@ -28,14 +28,13 @@ def run_simulation(n_of_families = 500,
     use_random_seed = None,
     seed = None,
     dump = False,
+    dump_type = "full",
     path = None):
-
     """
     Execute the simulation and dump/return resulting networks
 
     Parameters
     ----------
-    
     n_of_families: int
         Number of families in the network
         
@@ -90,18 +89,24 @@ def run_simulation(n_of_families = 500,
         If true dump networks to file, otherwise return the networks list
         NB, if network simulation is too heavy, the dump can crash
 
-    path:string
+    dump_type: string
+        Can be either ["full", "light"]. In the first case, the full simulation is dumped.
+        Otherwise, only a report about node status is saved
+        The dumped file will have the following structure:
+        - a list of ig.Graph() if dump_type is full
+        - a dict[i][j][attribute] where i is the step index, j is the node index and attribute can either be [agent_status, test_result, quarantine]
+
+    path: string
         The path to the file/folder where the networks will be saved
 
     Return
     ------
-
     nets:list
         List of nets of the simulation
 
     """
-    # generate new edges
 
+    # generate new edges
     if use_random_seed:
         np.random.seed(seed = seed)
         random.seed(seed)
@@ -153,6 +158,9 @@ def run_simulation(n_of_families = 500,
     if social_distance_strictness == 0:
         restriction_decreasing = False
         restriction_duration = 0
+    if dump_type != "full" and dump_type != "light":
+        print("Invalid dump type")
+        sys.exit()
 
 
     # init network
@@ -183,18 +191,8 @@ def run_simulation(n_of_families = 500,
             if infected + exposed == 0:
                 break
     if dump:
-        try:
-            with open(Path(path + ".pickle"), "wb") as f:
-                pickle.dump(nets, f)
-        except:
-            print("Simulation is too big to be dumped, try dumping in separated files. Note that this operation will be slow")
-            try:
-            	for i in range(len(nets)):
-            		dump_network(net, Path(path + "_network{}.pickle".format(i)))
-            except:
-            	print("Cannot dump network, the single network is too big. Please deactivate the dump option")
-            	sys.exit(-1)
-    
+        dump_simulation(nets, path, dump_type)
+  
     print("\n Simulation ended successfully \n")
 
     return nets
@@ -218,6 +216,7 @@ def main():
     use_random_seed = None
     seed = None
     dump = True
+    dump_type = None
     path = None
 
     user_interaction = int(input("Press 0 to load the default values or 1 to manually input the configuration for the simulation: "))
@@ -241,14 +240,17 @@ def main():
         use_random_seed = int(input("Press 1 use a fixed a random seed or 0 to pick a random seed: "))
         if use_random_seed:
             seed = int(input("Please insert the random seed: "))
+        dump_type = input("Please insert the dump type. Can be either full of light: ")
         path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")
 
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
-            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed, seed, dump, path)
+            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed,
+            seed, dump, dump_type, path)
     else:
+        dump_type = input("Please insert the dump type. Can be either full of light: ")
         path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")
-        run_simulation(path = path, dump = True)
+        run_simulation(path = path, dump = True, dump_type = dump_type)
 
 if __name__ == "__main__":
     main()

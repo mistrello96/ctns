@@ -1,5 +1,5 @@
 import igraph as ig
-import random
+import random, pickle
 from pathlib import Path
 import numpy as np
 #import matplotlib.pyplot as plt
@@ -27,6 +27,7 @@ def fix_distribution_node_number(distribution, n_nodes):
         Distribution where the sum of elements is equal to n_nodes
 
     """
+
     refined_distribution = list()
     while True:
         refined_distribution.append(distribution.pop())
@@ -51,6 +52,7 @@ def reset_network(G):
     None
 
     """
+
     G.delete_edges(list(G.es))
     for node in G.vs:
         node["agent_status"] = 'S'
@@ -62,24 +64,53 @@ def reset_network(G):
         node["test_result"] = -1
         node["symptoms"] = list()  
 
-def dump_network(G, path):
+def dump_simulation(nets, path, dump_type):
     """
-    Dump the contact network to a file
-    N.B.: if you need to reload the network after dump, use only pickle, not json 
+    Dump the simulation to a pickle file
     
     Parameters
     ----------
-    G: ig.Graph()
-        The contact network
+    nets: list
+        List of ig.Graph()
 
     path: string
         The file path
+
+    dump_type: string
+        Can be either ["full", "light"]. In the first case, the full simulation is dumped.
+        Otherwise, only a report about node status is saved
+
     Return
     ------
-    None
+    None. The function saves a picke file containing:
+        - a list of ig.Graph() if dump_type is full
+        - a dict[i][j][attribute] where i is the step index, j is the node index and attribute can either be [agent_status, test_result, quarantine]
 
     """
-    G.write_picklez(path)
+
+    if dump_type == "full":
+        try:
+            with open(Path(path + ".pickle"), "wb") as f:
+                pickle.dump(nets, f, protocol = pickle.HIGHEST_PROTOCOL)
+        except:
+            print("Simulation is too big to be dumped, try dumping in separated files. Note that this operation will be slow")
+            try:
+                for i in range(len(nets)):
+                    net.write_picklez(fname = Path(path + "_network{}.pickle".format(i)), version = pickle.HIGHEST_PROTOCOL)
+            except:
+                print("Cannot dump network, the single network is too big. Please deactivate the dump option")
+                sys.exit(-1)
+    else:
+        to_dump = dict()
+        for i in range(len(nets)):
+            to_dump[i] = dict()
+            for j in range(len(list(nets[i].vs))):
+                to_dump[i][j] = dict()
+                to_dump[i][j]["agent_status"] = nets[i].vs[j]["agent_status"]
+                to_dump[i][j]["test_result"] = nets[i].vs[j]["test_result"]
+                to_dump[i][j]["quarantine"] = nets[i].vs[j]["quarantine"]
+        with open(Path(path + ".pickle"), "wb") as f:
+            pickle.dump(to_dump, f, protocol = pickle.HIGHEST_PROTOCOL)
 
 def compute_TR(G, R_0, infection_duration, incubation_days):
     """
@@ -106,6 +137,7 @@ def compute_TR(G, R_0, infection_duration, incubation_days):
         The transmission rate for the network
 
     """
+
     avr_deg = list()
     # compute average weighted degree on 20 steps
     for i in range (20):
@@ -147,6 +179,7 @@ def plot_degree_dist(G, node_sociability = None, edge_category = None, title = N
     None
 
     """
+
     plt.figure(figsize = (8, 6), dpi = 300)
     if edge_category != None:
         G = G.copy()
@@ -197,6 +230,7 @@ def print_degree_summary(G, path):
     None
 
     """
+    
     plot_degree_dist(G, title = "Degree distribution", path = path)
     plot_degree_dist(G, node_sociability = "low", title = "Degree distribution low sociability", path = path)
     plot_degree_dist(G, node_sociability = "medium", title = "Degree distribution medium sociability", path = path)

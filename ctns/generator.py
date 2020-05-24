@@ -28,6 +28,7 @@ def generate_node_list_attribute(G, attribute_name, distribution):
     None
 
     """
+
     # extract node list and randomize
     node_list = list(G.vs)
     random.shuffle(node_list)
@@ -73,6 +74,7 @@ def generate_node_family_attribute(G, distribution):
     None
 
     """
+
     node_counter = 0;
     for i in range(len(distribution)):
         family_nodes = list(range(node_counter, node_counter + distribution[i]))
@@ -212,6 +214,7 @@ def init_infection(G, n_initial_infected_nodes):
     None
 
     """
+    
     for node in random.sample(list(G.vs), n_initial_infected_nodes):
         node["agent_status"] = "E"
         node["infected"] = True
