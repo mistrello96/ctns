@@ -64,7 +64,7 @@ def reset_network(G):
         node["test_result"] = -1
         node["symptoms"] = list()  
 
-def dump_simulation(nets, path, dump_type):
+def dump_simulation(nets, path, dump_type, config):
     """
     Dump the simulation to a pickle file
     
@@ -79,6 +79,9 @@ def dump_simulation(nets, path, dump_type):
     dump_type: string
         Can be either ["full", "light"]. In the first case, the full simulation is dumped.
         Otherwise, only a report about node status is saved
+    
+    config: dict
+        Parameters of the simulation
 
     Return
     ------
@@ -90,11 +93,16 @@ def dump_simulation(nets, path, dump_type):
 
     if dump_type == "full":
         try:
+            to_dump = dict()
+            to_dump["nets"] = nets
+            to_dump["parameters"] = config
             with open(Path(path + ".pickle"), "wb") as f:
-                pickle.dump(nets, f, protocol = pickle.DEFAULT_PROTOCOL)
+                pickle.dump(to_dump, f, protocol = pickle.DEFAULT_PROTOCOL)
         except:
             print("Simulation is too big to be dumped, try dumping in separated files. Note that this operation will be slow")
             try:
+                with open(Path(path + "_config.pickle"), "wb") as f:
+                    pickle.dump(config, f, protocol = pickle.DEFAULT_PROTOCOL)
                 for i in range(len(nets)):
                     net.write_picklez(fname = Path(path + "_network{}.pickle".format(i)), version = pickle.DEFAULT_PROTOCOL)
             except:
@@ -142,6 +150,8 @@ def dump_simulation(nets, path, dump_type):
             network_history['positive'].append(network_report['positive'])
             network_history['tested'].append(network_report['tested'])
             network_history['total'].append(total)
+
+        network_history['parameters'] = config
 
         with open(Path(path + ".pickle"), "wb") as f:
             pickle.dump(network_history, f, protocol = pickle.DEFAULT_PROTOCOL)

@@ -162,6 +162,7 @@ def run_simulation(n_of_families = 500,
         print("Invalid dump type")
         sys.exit()
 
+    config = locals()
 
     # init network
     G = generate_network(n_of_families)
@@ -191,7 +192,7 @@ def run_simulation(n_of_families = 500,
             if infected + exposed == 0:
                 break
     if dump:
-        dump_simulation(nets, path, dump_type)
+        dump_simulation(nets, path, dump_type, config)
   
     print("\n Simulation ended successfully \n")
 
