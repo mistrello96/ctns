@@ -84,33 +84,67 @@ def dump_simulation(nets, path, dump_type):
     ------
     None. The function saves a picke file containing:
         - a list of ig.Graph() if dump_type is full
-        - a dict[i][j][attribute] where i is the step index, j is the node index and attribute can either be [agent_status, test_result, quarantine]
+        - a dict[class] where class can be [S, E, I, R, D, quarantined, positive, tested, total] and value is a list of the corresponding attribute value on day i
 
     """
 
     if dump_type == "full":
         try:
             with open(Path(path + ".pickle"), "wb") as f:
-                pickle.dump(nets, f, protocol = pickle.HIGHEST_PROTOCOL)
+                pickle.dump(nets, f, protocol = pickle.DEFAULT_PROTOCOL)
         except:
             print("Simulation is too big to be dumped, try dumping in separated files. Note that this operation will be slow")
             try:
                 for i in range(len(nets)):
-                    net.write_picklez(fname = Path(path + "_network{}.pickle".format(i)), version = pickle.HIGHEST_PROTOCOL)
+                    net.write_picklez(fname = Path(path + "_network{}.pickle".format(i)), version = pickle.DEFAULT_PROTOCOL)
             except:
                 print("Cannot dump network, the single network is too big. Please deactivate the dump option")
                 sys.exit(-1)
     else:
-        to_dump = dict()
-        for i in range(len(nets)):
-            to_dump[i] = dict()
-            for j in range(len(list(nets[i].vs))):
-                to_dump[i][j] = dict()
-                to_dump[i][j]["agent_status"] = nets[i].vs[j]["agent_status"]
-                to_dump[i][j]["test_result"] = nets[i].vs[j]["test_result"]
-                to_dump[i][j]["quarantine"] = nets[i].vs[j]["quarantine"]
+        network_history = dict()
+        network_history['S'] = list()
+        network_history['E'] = list()
+        network_history['I'] = list()
+        network_history['R'] = list()
+        network_history['D'] = list()
+        network_history['quarantined'] = list()
+        network_history['positive'] = list()
+        network_history['tested'] = list()
+        network_history['total'] = list()
+
+        tested = 0
+        positive = 0
+        quarantined = 0
+
+        for day in range(len(nets)):
+            G = nets[day]
+            network_report = Counter(G.vs["agent_status"])
+            for node in G.vs:
+                if node["test_result"] != -1:
+                    tested += 1
+                if node["test_result"] == 1:
+                    positive += 1
+                if node["quarantine"] != 0:
+                    quarantined += 1
+
+            total = sum(network_report.values())
+            network_report['quarantined'] = quarantined
+            network_report['positive'] = positive
+            network_report['tested'] = tested
+
+
+            network_history['S'].append(network_report['S'])
+            network_history['E'].append(network_report['E'])
+            network_history['I'].append(network_report['I'])
+            network_history['R'].append(network_report['R'])
+            network_history['D'].append(network_report['D'])
+            network_history['quarantined'].append(network_report['quarantined'])
+            network_history['positive'].append(network_report['positive'])
+            network_history['tested'].append(network_report['tested'])
+            network_history['total'].append(total)
+
         with open(Path(path + ".pickle"), "wb") as f:
-            pickle.dump(to_dump, f, protocol = pickle.HIGHEST_PROTOCOL)
+            pickle.dump(network_history, f, protocol = pickle.DEFAULT_PROTOCOL)
 
 def compute_TR(G, R_0, infection_duration, incubation_days):
     """

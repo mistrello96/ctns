@@ -94,7 +94,7 @@ def run_simulation(n_of_families = 500,
         Otherwise, only a report about node status is saved
         The dumped file will have the following structure:
         - a list of ig.Graph() if dump_type is full
-        - a dict[i][j][attribute] where i is the step index, j is the node index and attribute can either be [agent_status, test_result, quarantine]
+        - a dict[class] where class can be [S, E, I, R, D, quarantined, positive, tested, total] and value is a list of the corresponding attribute value on day i
 
     path: string
         The path to the file/folder where the networks will be saved
