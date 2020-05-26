@@ -120,7 +120,7 @@ def run_simulation(n_of_families = 500,
         Otherwise, only a report about node status is saved
         The dumped file will have the following structure:
         - a list of ig.Graph() if dump_type is full
-        - a dict[i][j][attribute] where i is the step index, j is the node index and attribute can either be [agent_status, test_result, quarantine]
+        - a dict[class] where class can be [S, E, I, R, D, quarantined, positive, tested, total] and value is a list of the corresponding attribute value on day i
 
     path: string
         The path to the file/folder where the networks will be saved
@@ -188,6 +188,7 @@ def run_simulation(n_of_families = 500,
         print(&#34;Invalid dump type&#34;)
         sys.exit()
 
+    config = locals()
 
     # init network
     G = generate_network(n_of_families)
@@ -217,7 +218,7 @@ def run_simulation(n_of_families = 500,
             if infected + exposed == 0:
                 break
     if dump:
-        dump_simulation(nets, path, dump_type)
+        dump_simulation(nets, path, dump_type, config)
   
     print(&#34;\n Simulation ended successfully \n&#34;)
 
@@ -403,7 +404,7 @@ NB, if network simulation is too heavy, the dump can crash</dd>
 Otherwise, only a report about node status is saved
 The dumped file will have the following structure:
 - a list of ig.Graph() if dump_type is full
-- a dict[i][j][attribute] where i is the step index, j is the node index and attribute can either be [agent_status, test_result, quarantine]</dd>
+- a dict[class] where class can be [S, E, I, R, D, quarantined, positive, tested, total] and value is a list of the corresponding attribute value on day i</dd>
 <dt><strong><code>path</code></strong> :&ensp;<code>string</code></dt>
 <dd>The path to the file/folder where the networks will be saved</dd>
 </dl>
@@ -497,7 +498,7 @@ List of nets of the simulation</p></div>
         Otherwise, only a report about node status is saved
         The dumped file will have the following structure:
         - a list of ig.Graph() if dump_type is full
-        - a dict[i][j][attribute] where i is the step index, j is the node index and attribute can either be [agent_status, test_result, quarantine]
+        - a dict[class] where class can be [S, E, I, R, D, quarantined, positive, tested, total] and value is a list of the corresponding attribute value on day i
 
     path: string
         The path to the file/folder where the networks will be saved
@@ -565,6 +566,7 @@ List of nets of the simulation</p></div>
         print(&#34;Invalid dump type&#34;)
         sys.exit()
 
+    config = locals()
 
     # init network
     G = generate_network(n_of_families)
@@ -594,7 +596,7 @@ List of nets of the simulation</p></div>
             if infected + exposed == 0:
                 break
     if dump:
-        dump_simulation(nets, path, dump_type)
+        dump_simulation(nets, path, dump_type, config)
   
     print(&#34;\n Simulation ended successfully \n&#34;)
 
