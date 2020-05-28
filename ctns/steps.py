@@ -535,9 +535,6 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
 
     Return
     ------
-    report: dict
-        Counter of nodes status
-
     G: ig.Graph()
         The contact network
         
@@ -575,7 +572,7 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     for node in G.vs:
         agent_status_report.append(node["agent_status"])
 
-    return Counter(agent_status_report), G  
+    return G  
 
 def compute_sd_reduction(step_index, initial_day_restriction, restriction_duration, social_distance_strictness):
     """

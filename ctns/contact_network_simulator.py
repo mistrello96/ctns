@@ -1,15 +1,16 @@
 import igraph as ig
 import numpy as np
 from pathlib import Path
-import sys, random, time, collections
+from collections import deque, Counter
+import sys, random, time, pickle
 try:
     from ctns.generator import generate_network, init_infection
     from ctns.steps import step
-    from ctns.utility import dump_simulation, compute_TR
+    from ctns.utility import compute_TR
 except ImportError as e:
     from generator import generate_network, init_infection
     from steps import step
-    from utility import dump_simulation, compute_TR
+    from utility import compute_TR
 
 def run_simulation(n_of_families = 500,
     use_steps = True,
@@ -157,6 +158,8 @@ def run_simulation(n_of_families = 500,
     if social_distance_strictness == 0:
         restriction_decreasing = False
         restriction_duration = 0
+    if not dump:
+        dump_type = None
     if dump_type != "full" and dump_type != "light":
         print("Invalid dump type")
         sys.exit()
@@ -167,20 +170,62 @@ def run_simulation(n_of_families = 500,
     G = generate_network(n_of_families)
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
     init_infection(G, n_initial_infected_nodes)
+
     nets = collections.deque(maxlen = 14)
+    if dump_type == "full":
+        to_dump = dict()
+        to_dump["nets"] = list()
+        to_dump["parameters"] = config
+    if dump_type == "light":
+        to_dump = dict()
+        to_dump['S'] = list()
+        to_dump['E'] = list()
+        to_dump['I'] = list()
+        to_dump['R'] = list()
+        to_dump['D'] = list()
+        to_dump['quarantined'] = list()
+        to_dump['positive'] = list()
+        to_dump['tested'] = list()
+        to_dump['total'] = list()
+        to_dump['parameters'] = config
 
     if use_steps:
         for sim_index in range (0, number_of_steps):
-            report, net= step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
             nets.append(net.copy())
+            if dump_type == "full":
+                to_dump["nets"].append(net.copy())
+            if dump_type == "light":
+                network_report = Counter(net.vs["agent_status"])
+                tested = 0
+                positive = 0
+                quarantined = 0
+                for node in net.vs:
+                    if node["test_result"] != -1:
+                        tested += 1
+                    if node["test_result"] == 1:
+                        positive += 1
+                    if node["quarantine"] != 0:
+                        quarantined += 1
+
+                to_dump['S'].append(network_report['S'])
+                to_dump['E'].append(network_report['E'])
+                to_dump['I'].append(network_report['I'])
+                to_dump['R'].append(network_report['R'])
+                to_dump['D'].append(network_report['D'])
+                to_dump['quarantined'].append(quarantined)
+                to_dump['positive'].append(positive)
+                to_dump['tested'].append(tested)
+                to_dump['total'].append(sum(network_report.values()))
+
     else:
         exposed = n_initial_infected_nodes
         infected = 0
         sim_index = 0
         while((infected + exposed) != 0):
-            report, net= step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
             nets.append(net.copy())
@@ -188,10 +233,37 @@ def run_simulation(n_of_families = 500,
             infected = report["I"]
             exposed = report["E"]
 
+            if dump_type == "full":
+                to_dump.append(net.copy())
+            if dump_type == "light":
+                network_report = Counter(net.vs["agent_status"])
+                tested = 0
+                positive = 0
+                quarantined = 0
+                for node in net.vs:
+                    if node["test_result"] != -1:
+                        tested += 1
+                    if node["test_result"] == 1:
+                        positive += 1
+                    if node["quarantine"] != 0:
+                        quarantined += 1
+
+                to_dump['S'].append(network_report['S'])
+                to_dump['E'].append(network_report['E'])
+                to_dump['I'].append(network_report['I'])
+                to_dump['R'].append(network_report['R'])
+                to_dump['D'].append(network_report['D'])
+                to_dump['quarantined'].append(quarantined)
+                to_dump['positive'].append(positive)
+                to_dump['tested'].append(tested)
+                to_dump['total'].append(sum(network_report.values()))
+
             if infected + exposed == 0:
                 break
+    
     if dump:
-        dump_simulation(nets, path, dump_type, config)
+        with open(Path(path + ".pickle"), "wb") as f:
+            pickle.dump(to_dump, f, protocol = pickle.DEFAULT_PROTOCOL)
   
     print("\n Simulation ended successfully \n")
 
