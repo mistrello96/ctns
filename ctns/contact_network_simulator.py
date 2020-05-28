@@ -1,7 +1,7 @@
 import igraph as ig
 import numpy as np
 from pathlib import Path
-import sys, random, time
+import sys, random, time, collections
 try:
     from ctns.generator import generate_network, init_infection
     from ctns.steps import step
@@ -101,8 +101,7 @@ def run_simulation(n_of_families = 500,
 
     Return
     ------
-    nets:list
-        List of nets of the simulation
+    None
 
     """
 
@@ -168,7 +167,7 @@ def run_simulation(n_of_families = 500,
     G = generate_network(n_of_families)
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
     init_infection(G, n_initial_infected_nodes)
-    nets = list()
+    nets = collections.deque(maxlen = 14)
 
     if use_steps:
         for sim_index in range (0, number_of_steps):
@@ -195,8 +194,6 @@ def run_simulation(n_of_families = 500,
         dump_simulation(nets, path, dump_type, config)
   
     print("\n Simulation ended successfully \n")
-
-    return nets
 
 def main():
 
