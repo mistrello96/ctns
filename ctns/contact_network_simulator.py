@@ -1,7 +1,7 @@
 import igraph as ig
 import numpy as np
 from pathlib import Path
-from collections import deque, Counter
+from collections import deque
 import sys, random, time, pickle
 try:
     from ctns.generator import generate_network, init_infection
