@@ -99,6 +99,49 @@ def compute_TR(G, R_0, infection_duration, incubation_days):
     reset_network(G)
     return R_0 /((infection_duration - incubation_days) * (sum(avr_deg) / len(avr_deg)))
 
+def update_dump_report(to_dump, net):
+    """
+    Update the simulation dump in case light dump is selected
+    
+    Parameters
+    ----------
+    to_dump: dict
+        Old dump doctionary
+
+    net: ig.Graph()
+        The contact network
+
+    Return
+    ------
+    to_dump: dict
+        Updated dump doctionary
+
+    """
+
+    network_report = Counter(net.vs["agent_status"])
+    tested = 0
+    positive = 0
+    quarantined = 0
+    for node in net.vs:
+        if node["test_result"] != -1:
+            tested += 1
+        if node["test_result"] == 1:
+            positive += 1
+        if node["quarantine"] != 0:
+            quarantined += 1
+
+    to_dump['S'].append(network_report['S'])
+    to_dump['E'].append(network_report['E'])
+    to_dump['I'].append(network_report['I'])
+    to_dump['R'].append(network_report['R'])
+    to_dump['D'].append(network_report['D'])
+    to_dump['quarantined'].append(quarantined)
+    to_dump['positive'].append(positive)
+    to_dump['tested'].append(tested)
+    to_dump['total'].append(sum(network_report.values()))
+
+    return to_dump
+
 '''
 
 def plot_degree_dist(G, node_sociability = None, edge_category = None, title = None, path = None):
