@@ -561,9 +561,6 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
 
     Return
     ------
-    report: dict
-        Counter of nodes status
-
     G: ig.Graph()
         The contact network
         
@@ -601,7 +598,7 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     for node in G.vs:
         agent_status_report.append(node[&#34;agent_status&#34;])
 
-    return Counter(agent_status_report), G  
+    return G  
 
 def compute_sd_reduction(step_index, initial_day_restriction, restriction_duration, social_distance_strictness):
     &#34;&#34;&#34;
@@ -972,8 +969,6 @@ Note that family contacts are not included in this reduction</dd>
 <dd>The percentage of contacts successfully traced</dd>
 </dl>
 <h2 id="return">Return</h2>
-<p>report: dict
-Counter of nodes status</p>
 <p>G: ig.Graph()
 The contact network</p></div>
 <details class="source">
@@ -1031,9 +1026,6 @@ The contact network</p></div>
 
     Return
     ------
-    report: dict
-        Counter of nodes status
-
     G: ig.Graph()
         The contact network
         
@@ -1071,7 +1063,7 @@ The contact network</p></div>
     for node in G.vs:
         agent_status_report.append(node[&#34;agent_status&#34;])
 
-    return Counter(agent_status_report), G  </code></pre>
+    return G  </code></pre>
 </details>
 </dd>
 <dt id="ctns.steps.step_edges"><code class="name flex">

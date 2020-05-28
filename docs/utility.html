@@ -25,11 +25,9 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import igraph as ig
-import random, pickle
-from pathlib import Path
+import random
 import numpy as np
 #import matplotlib.pyplot as plt
-from collections import Counter
 try:
     from ctns.steps import step
 except ImportError as e:
@@ -90,98 +88,6 @@ def reset_network(G):
         node[&#34;test_result&#34;] = -1
         node[&#34;symptoms&#34;] = list()  
 
-def dump_simulation(nets, path, dump_type, config):
-    &#34;&#34;&#34;
-    Dump the simulation to a pickle file
-    
-    Parameters
-    ----------
-    nets: list
-        List of ig.Graph()
-
-    path: string
-        The file path
-
-    dump_type: string
-        Can be either [&#34;full&#34;, &#34;light&#34;]. In the first case, the full simulation is dumped.
-        Otherwise, only a report about node status is saved
-    
-    config: dict
-        Parameters of the simulation
-
-    Return
-    ------
-    None. The function saves a picke file containing:
-        - a list of ig.Graph() if dump_type is full
-        - a dict[class] where class can be [S, E, I, R, D, quarantined, positive, tested, total] and value is a list of the corresponding attribute value on day i
-
-    &#34;&#34;&#34;
-
-    if dump_type == &#34;full&#34;:
-        try:
-            to_dump = dict()
-            to_dump[&#34;nets&#34;] = nets
-            to_dump[&#34;parameters&#34;] = config
-            with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
-                pickle.dump(to_dump, f, protocol = pickle.DEFAULT_PROTOCOL)
-        except:
-            print(&#34;Simulation is too big to be dumped, try dumping in separated files. Note that this operation will be slow&#34;)
-            try:
-                with open(Path(path + &#34;_config.pickle&#34;), &#34;wb&#34;) as f:
-                    pickle.dump(config, f, protocol = pickle.DEFAULT_PROTOCOL)
-                for i in range(len(nets)):
-                    net.write_picklez(fname = Path(path + &#34;_network{}.pickle&#34;.format(i)), version = pickle.DEFAULT_PROTOCOL)
-            except:
-                print(&#34;Cannot dump network, the single network is too big. Please deactivate the dump option&#34;)
-                sys.exit(-1)
-    else:
-        network_history = dict()
-        network_history[&#39;S&#39;] = list()
-        network_history[&#39;E&#39;] = list()
-        network_history[&#39;I&#39;] = list()
-        network_history[&#39;R&#39;] = list()
-        network_history[&#39;D&#39;] = list()
-        network_history[&#39;quarantined&#39;] = list()
-        network_history[&#39;positive&#39;] = list()
-        network_history[&#39;tested&#39;] = list()
-        network_history[&#39;total&#39;] = list()
-
-        tested = 0
-        positive = 0
-        quarantined = 0
-
-        for day in range(len(nets)):
-            G = nets[day]
-            network_report = Counter(G.vs[&#34;agent_status&#34;])
-            for node in G.vs:
-                if node[&#34;test_result&#34;] != -1:
-                    tested += 1
-                if node[&#34;test_result&#34;] == 1:
-                    positive += 1
-                if node[&#34;quarantine&#34;] != 0:
-                    quarantined += 1
-
-            total = sum(network_report.values())
-            network_report[&#39;quarantined&#39;] = quarantined
-            network_report[&#39;positive&#39;] = positive
-            network_report[&#39;tested&#39;] = tested
-
-
-            network_history[&#39;S&#39;].append(network_report[&#39;S&#39;])
-            network_history[&#39;E&#39;].append(network_report[&#39;E&#39;])
-            network_history[&#39;I&#39;].append(network_report[&#39;I&#39;])
-            network_history[&#39;R&#39;].append(network_report[&#39;R&#39;])
-            network_history[&#39;D&#39;].append(network_report[&#39;D&#39;])
-            network_history[&#39;quarantined&#39;].append(network_report[&#39;quarantined&#39;])
-            network_history[&#39;positive&#39;].append(network_report[&#39;positive&#39;])
-            network_history[&#39;tested&#39;].append(network_report[&#39;tested&#39;])
-            network_history[&#39;total&#39;].append(total)
-
-        network_history[&#39;parameters&#39;] = config
-
-        with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
-            pickle.dump(network_history, f, protocol = pickle.DEFAULT_PROTOCOL)
-
 def compute_TR(G, R_0, infection_duration, incubation_days):
     &#34;&#34;&#34;
     Compute the transmission rate of the disease in the network.
@@ -218,6 +124,49 @@ def compute_TR(G, R_0, infection_duration, incubation_days):
     #reset network status
     reset_network(G)
     return R_0 /((infection_duration - incubation_days) * (sum(avr_deg) / len(avr_deg)))
+
+def update_dump_report(to_dump, net):
+    &#34;&#34;&#34;
+    Update the simulation dump in case light dump is selected
+    
+    Parameters
+    ----------
+    to_dump: dict
+        Old dump doctionary
+
+    net: ig.Graph()
+        The contact network
+
+    Return
+    ------
+    to_dump: dict
+        Updated dump doctionary
+
+    &#34;&#34;&#34;
+
+    network_report = Counter(net.vs[&#34;agent_status&#34;])
+    tested = 0
+    positive = 0
+    quarantined = 0
+    for node in net.vs:
+        if node[&#34;test_result&#34;] != -1:
+            tested += 1
+        if node[&#34;test_result&#34;] == 1:
+            positive += 1
+        if node[&#34;quarantine&#34;] != 0:
+            quarantined += 1
+
+    to_dump[&#39;S&#39;].append(network_report[&#39;S&#39;])
+    to_dump[&#39;E&#39;].append(network_report[&#39;E&#39;])
+    to_dump[&#39;I&#39;].append(network_report[&#39;I&#39;])
+    to_dump[&#39;R&#39;].append(network_report[&#39;R&#39;])
+    to_dump[&#39;D&#39;].append(network_report[&#39;D&#39;])
+    to_dump[&#39;quarantined&#39;].append(quarantined)
+    to_dump[&#39;positive&#39;].append(positive)
+    to_dump[&#39;tested&#39;].append(tested)
+    to_dump[&#39;total&#39;].append(sum(network_report.values()))
+
+    return to_dump
 
 &#39;&#39;&#39;
 
@@ -383,124 +332,6 @@ The transmission rate for the network</p></div>
     return R_0 /((infection_duration - incubation_days) * (sum(avr_deg) / len(avr_deg)))</code></pre>
 </details>
 </dd>
-<dt id="ctns.utility.dump_simulation"><code class="name flex">
-<span>def <span class="ident">dump_simulation</span></span>(<span>nets, path, dump_type, config)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Dump the simulation to a pickle file</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>nets</code></strong> :&ensp;<code>list</code></dt>
-<dd>List of ig.Graph()</dd>
-<dt><strong><code>path</code></strong> :&ensp;<code>string</code></dt>
-<dd>The file path</dd>
-<dt><strong><code>dump_type</code></strong> :&ensp;<code>string</code></dt>
-<dd>Can be either ["full", "light"]. In the first case, the full simulation is dumped.
-Otherwise, only a report about node status is saved</dd>
-<dt><strong><code>config</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Parameters of the simulation</dd>
-</dl>
-<h2 id="return">Return</h2>
-<p>None. The function saves a picke file containing:
-- a list of ig.Graph() if dump_type is full
-- a dict[class] where class can be [S, E, I, R, D, quarantined, positive, tested, total] and value is a list of the corresponding attribute value on day i</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def dump_simulation(nets, path, dump_type, config):
-    &#34;&#34;&#34;
-    Dump the simulation to a pickle file
-    
-    Parameters
-    ----------
-    nets: list
-        List of ig.Graph()
-
-    path: string
-        The file path
-
-    dump_type: string
-        Can be either [&#34;full&#34;, &#34;light&#34;]. In the first case, the full simulation is dumped.
-        Otherwise, only a report about node status is saved
-    
-    config: dict
-        Parameters of the simulation
-
-    Return
-    ------
-    None. The function saves a picke file containing:
-        - a list of ig.Graph() if dump_type is full
-        - a dict[class] where class can be [S, E, I, R, D, quarantined, positive, tested, total] and value is a list of the corresponding attribute value on day i
-
-    &#34;&#34;&#34;
-
-    if dump_type == &#34;full&#34;:
-        try:
-            to_dump = dict()
-            to_dump[&#34;nets&#34;] = nets
-            to_dump[&#34;parameters&#34;] = config
-            with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
-                pickle.dump(to_dump, f, protocol = pickle.DEFAULT_PROTOCOL)
-        except:
-            print(&#34;Simulation is too big to be dumped, try dumping in separated files. Note that this operation will be slow&#34;)
-            try:
-                with open(Path(path + &#34;_config.pickle&#34;), &#34;wb&#34;) as f:
-                    pickle.dump(config, f, protocol = pickle.DEFAULT_PROTOCOL)
-                for i in range(len(nets)):
-                    net.write_picklez(fname = Path(path + &#34;_network{}.pickle&#34;.format(i)), version = pickle.DEFAULT_PROTOCOL)
-            except:
-                print(&#34;Cannot dump network, the single network is too big. Please deactivate the dump option&#34;)
-                sys.exit(-1)
-    else:
-        network_history = dict()
-        network_history[&#39;S&#39;] = list()
-        network_history[&#39;E&#39;] = list()
-        network_history[&#39;I&#39;] = list()
-        network_history[&#39;R&#39;] = list()
-        network_history[&#39;D&#39;] = list()
-        network_history[&#39;quarantined&#39;] = list()
-        network_history[&#39;positive&#39;] = list()
-        network_history[&#39;tested&#39;] = list()
-        network_history[&#39;total&#39;] = list()
-
-        tested = 0
-        positive = 0
-        quarantined = 0
-
-        for day in range(len(nets)):
-            G = nets[day]
-            network_report = Counter(G.vs[&#34;agent_status&#34;])
-            for node in G.vs:
-                if node[&#34;test_result&#34;] != -1:
-                    tested += 1
-                if node[&#34;test_result&#34;] == 1:
-                    positive += 1
-                if node[&#34;quarantine&#34;] != 0:
-                    quarantined += 1
-
-            total = sum(network_report.values())
-            network_report[&#39;quarantined&#39;] = quarantined
-            network_report[&#39;positive&#39;] = positive
-            network_report[&#39;tested&#39;] = tested
-
-
-            network_history[&#39;S&#39;].append(network_report[&#39;S&#39;])
-            network_history[&#39;E&#39;].append(network_report[&#39;E&#39;])
-            network_history[&#39;I&#39;].append(network_report[&#39;I&#39;])
-            network_history[&#39;R&#39;].append(network_report[&#39;R&#39;])
-            network_history[&#39;D&#39;].append(network_report[&#39;D&#39;])
-            network_history[&#39;quarantined&#39;].append(network_report[&#39;quarantined&#39;])
-            network_history[&#39;positive&#39;].append(network_report[&#39;positive&#39;])
-            network_history[&#39;tested&#39;].append(network_report[&#39;tested&#39;])
-            network_history[&#39;total&#39;].append(total)
-
-        network_history[&#39;parameters&#39;] = config
-
-        with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
-            pickle.dump(network_history, f, protocol = pickle.DEFAULT_PROTOCOL)</code></pre>
-</details>
-</dd>
 <dt id="ctns.utility.fix_distribution_node_number"><code class="name flex">
 <span>def <span class="ident">fix_distribution_node_number</span></span>(<span>distribution, n_nodes)</span>
 </code></dt>
@@ -594,6 +425,69 @@ related attributes of each node to the default value</p>
         node[&#34;symptoms&#34;] = list()  </code></pre>
 </details>
 </dd>
+<dt id="ctns.utility.update_dump_report"><code class="name flex">
+<span>def <span class="ident">update_dump_report</span></span>(<span>to_dump, net)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Update the simulation dump in case light dump is selected</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>to_dump</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Old dump doctionary</dd>
+<dt><strong><code>net</code></strong> :&ensp;<code>ig.Graph()</code></dt>
+<dd>The contact network</dd>
+</dl>
+<h2 id="return">Return</h2>
+<p>to_dump: dict
+Updated dump doctionary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_dump_report(to_dump, net):
+    &#34;&#34;&#34;
+    Update the simulation dump in case light dump is selected
+    
+    Parameters
+    ----------
+    to_dump: dict
+        Old dump doctionary
+
+    net: ig.Graph()
+        The contact network
+
+    Return
+    ------
+    to_dump: dict
+        Updated dump doctionary
+
+    &#34;&#34;&#34;
+
+    network_report = Counter(net.vs[&#34;agent_status&#34;])
+    tested = 0
+    positive = 0
+    quarantined = 0
+    for node in net.vs:
+        if node[&#34;test_result&#34;] != -1:
+            tested += 1
+        if node[&#34;test_result&#34;] == 1:
+            positive += 1
+        if node[&#34;quarantine&#34;] != 0:
+            quarantined += 1
+
+    to_dump[&#39;S&#39;].append(network_report[&#39;S&#39;])
+    to_dump[&#39;E&#39;].append(network_report[&#39;E&#39;])
+    to_dump[&#39;I&#39;].append(network_report[&#39;I&#39;])
+    to_dump[&#39;R&#39;].append(network_report[&#39;R&#39;])
+    to_dump[&#39;D&#39;].append(network_report[&#39;D&#39;])
+    to_dump[&#39;quarantined&#39;].append(quarantined)
+    to_dump[&#39;positive&#39;].append(positive)
+    to_dump[&#39;tested&#39;].append(tested)
+    to_dump[&#39;total&#39;].append(sum(network_report.values()))
+
+    return to_dump</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -613,9 +507,9 @@ related attributes of each node to the default value</p>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="ctns.utility.compute_TR" href="#ctns.utility.compute_TR">compute_TR</a></code></li>
-<li><code><a title="ctns.utility.dump_simulation" href="#ctns.utility.dump_simulation">dump_simulation</a></code></li>
 <li><code><a title="ctns.utility.fix_distribution_node_number" href="#ctns.utility.fix_distribution_node_number">fix_distribution_node_number</a></code></li>
 <li><code><a title="ctns.utility.reset_network" href="#ctns.utility.reset_network">reset_network</a></code></li>
+<li><code><a title="ctns.utility.update_dump_report" href="#ctns.utility.update_dump_report">update_dump_report</a></code></li>
 </ul>
 </li>
 </ul>

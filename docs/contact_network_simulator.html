@@ -27,15 +27,16 @@
 <pre><code class="python">import igraph as ig
 import numpy as np
 from pathlib import Path
-import sys, random, time
+from collections import deque, Counter
+import sys, random, time, pickle
 try:
     from ctns.generator import generate_network, init_infection
     from ctns.steps import step
-    from ctns.utility import dump_simulation, compute_TR
+    from ctns.utility import compute_TR, update_dump_report
 except ImportError as e:
     from generator import generate_network, init_infection
     from steps import step
-    from utility import dump_simulation, compute_TR
+    from utility import compute_TR, update_dump_report
 
 def run_simulation(n_of_families = 500,
     use_steps = True,
@@ -53,7 +54,6 @@ def run_simulation(n_of_families = 500,
     contact_tracking_efficiency = 0.8,
     use_random_seed = None,
     seed = None,
-    dump = False,
     dump_type = &#34;full&#34;,
     path = None):
     &#34;&#34;&#34;
@@ -111,15 +111,12 @@ def run_simulation(n_of_families = 500,
     seed: int
         The random seed value
 
-    dump: bool
-        If true dump networks to file, otherwise return the networks list
-        NB, if network simulation is too heavy, the dump can crash
-
     dump_type: string
-        Can be either [&#34;full&#34;, &#34;light&#34;]. In the first case, the full simulation is dumped.
-        Otherwise, only a report about node status is saved
+        Can be either [&#34;full&#34;, &#34;light&#34;]. In the first case, the full simulation (all nets structure) is dumped.
+        Otherwise, only a report about node status is saved.
+        NB, full method will use significally more RAM than light; also the dump will have much bigger size.
         The dumped file will have the following structure:
-        - a list of ig.Graph() if dump_type is full
+        - a dict containig simulation parameters and a list of ig.Graph() if dump_type is full
         - a dict[class] where class can be [S, E, I, R, D, quarantined, positive, tested, total] and value is a list of the corresponding attribute value on day i
 
     path: string
@@ -127,8 +124,7 @@ def run_simulation(n_of_families = 500,
 
     Return
     ------
-    nets:list
-        List of nets of the simulation
+    None
 
     &#34;&#34;&#34;
 
@@ -194,35 +190,60 @@ def run_simulation(n_of_families = 500,
     G = generate_network(n_of_families)
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
     init_infection(G, n_initial_infected_nodes)
-    nets = list()
+
+    nets = deque(maxlen = 14)
+    if dump_type == &#34;full&#34;:
+        to_dump = dict()
+        to_dump[&#34;nets&#34;] = list()
+        to_dump[&#34;parameters&#34;] = config
+    if dump_type == &#34;light&#34;:
+        to_dump = dict()
+        to_dump[&#39;S&#39;] = list()
+        to_dump[&#39;E&#39;] = list()
+        to_dump[&#39;I&#39;] = list()
+        to_dump[&#39;R&#39;] = list()
+        to_dump[&#39;D&#39;] = list()
+        to_dump[&#39;quarantined&#39;] = list()
+        to_dump[&#39;positive&#39;] = list()
+        to_dump[&#39;tested&#39;] = list()
+        to_dump[&#39;total&#39;] = list()
+        to_dump[&#39;parameters&#39;] = config
 
     if use_steps:
         for sim_index in range (0, number_of_steps):
-            report, net= step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
             nets.append(net.copy())
+            if dump_type == &#34;full&#34;:
+                to_dump[&#34;nets&#34;].append(net.copy())
+            if dump_type == &#34;light&#34;:
+                to_dump = update_dump_report(to_dump, net)
     else:
         exposed = n_initial_infected_nodes
         infected = 0
         sim_index = 0
         while((infected + exposed) != 0):
-            report, net= step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
             nets.append(net.copy())
             sim_index += 1
+
+            if dump_type == &#34;full&#34;:
+                to_dump.append(net.copy())
+            if dump_type == &#34;light&#34;:
+                to_dump = update_dump_report(to_dump, net)
+                
             infected = report[&#34;I&#34;]
             exposed = report[&#34;E&#34;]
-
             if infected + exposed == 0:
                 break
-    if dump:
-        dump_simulation(nets, path, dump_type, config)
+
+    with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
+        pickle.dump(to_dump, f, protocol = pickle.DEFAULT_PROTOCOL)
   
     print(&#34;\n Simulation ended successfully \n&#34;)
-
-    return nets
 
 def main():
 
@@ -242,7 +263,6 @@ def main():
     contact_tracking_efficiency = None
     use_random_seed = None
     seed = None
-    dump = True
     dump_type = None
     path = None
 
@@ -258,7 +278,7 @@ def main():
         initial_day_restriction = int(input(&#34;Please insert the step index from which the social distance is applied: &#34;))
         restriction_duration = int(input(&#34;Please insert the number of days which the social distance last. Insert 0 to make the restriction last for all the simulation: &#34;))
         social_distance_strictness = int(input(&#34;Please insert a value between 0 and 4 to set the social distance strictness: &#34;))
-        restriction_decreasing = int(input(&#34;Press 0 to make the strictness of the social distance decrease during the simulation or 1 to keep it fixed: &#34;))
+        restriction_decreasing = int(input(&#34;Press 1 to make the strictness of the social distance decrease during the simulation or 0 to keep it fixed: &#34;))
         n_initial_infected_nodes = int(input(&#34;Please insert the number of initial infected individuals: &#34;))
         R_0 = float(input(&#34;Please insert the value of R0: &#34;))
         n_test = int(input(&#34;Please insert the number of available test per day: &#34;))
@@ -273,11 +293,11 @@ def main():
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed,
-            seed, dump, dump_type, path)
+            seed, dump_type, path)
     else:
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
-        run_simulation(path = path, dump = True, dump_type = dump_type)
+        run_simulation(path = path, dump_type = dump_type)
 
 if __name__ == &#34;__main__&#34;:
     main()</code></pre>
@@ -317,7 +337,6 @@ if __name__ == &#34;__main__&#34;:
     contact_tracking_efficiency = None
     use_random_seed = None
     seed = None
-    dump = True
     dump_type = None
     path = None
 
@@ -333,7 +352,7 @@ if __name__ == &#34;__main__&#34;:
         initial_day_restriction = int(input(&#34;Please insert the step index from which the social distance is applied: &#34;))
         restriction_duration = int(input(&#34;Please insert the number of days which the social distance last. Insert 0 to make the restriction last for all the simulation: &#34;))
         social_distance_strictness = int(input(&#34;Please insert a value between 0 and 4 to set the social distance strictness: &#34;))
-        restriction_decreasing = int(input(&#34;Press 0 to make the strictness of the social distance decrease during the simulation or 1 to keep it fixed: &#34;))
+        restriction_decreasing = int(input(&#34;Press 1 to make the strictness of the social distance decrease during the simulation or 0 to keep it fixed: &#34;))
         n_initial_infected_nodes = int(input(&#34;Please insert the number of initial infected individuals: &#34;))
         R_0 = float(input(&#34;Please insert the value of R0: &#34;))
         n_test = int(input(&#34;Please insert the number of available test per day: &#34;))
@@ -348,15 +367,15 @@ if __name__ == &#34;__main__&#34;:
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed,
-            seed, dump, dump_type, path)
+            seed, dump_type, path)
     else:
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
-        run_simulation(path = path, dump = True, dump_type = dump_type)</code></pre>
+        run_simulation(path = path, dump_type = dump_type)</code></pre>
 </details>
 </dd>
 <dt id="ctns.contact_network_simulator.run_simulation"><code class="name flex">
-<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=500, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=5, policy_test='Random', contact_tracking_efficiency=0.8, use_random_seed=None, seed=None, dump=False, dump_type='full', path=None)</span>
+<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=500, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=5, policy_test='Random', contact_tracking_efficiency=0.8, use_random_seed=None, seed=None, dump_type='full', path=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Execute the simulation and dump/return resulting networks</p>
@@ -396,21 +415,18 @@ Note that family contacts are not included in this reduction</dd>
 <dd>Id use or not a fixed random seed</dd>
 <dt><strong><code>seed</code></strong> :&ensp;<code>int</code></dt>
 <dd>The random seed value</dd>
-<dt><strong><code>dump</code></strong> :&ensp;<code>bool</code></dt>
-<dd>If true dump networks to file, otherwise return the networks list
-NB, if network simulation is too heavy, the dump can crash</dd>
 <dt><strong><code>dump_type</code></strong> :&ensp;<code>string</code></dt>
-<dd>Can be either ["full", "light"]. In the first case, the full simulation is dumped.
-Otherwise, only a report about node status is saved
+<dd>Can be either ["full", "light"]. In the first case, the full simulation (all nets structure) is dumped.
+Otherwise, only a report about node status is saved.
+NB, full method will use significally more RAM than light; also the dump will have much bigger size.
 The dumped file will have the following structure:
-- a list of ig.Graph() if dump_type is full
+- a dict containig simulation parameters and a list of ig.Graph() if dump_type is full
 - a dict[class] where class can be [S, E, I, R, D, quarantined, positive, tested, total] and value is a list of the corresponding attribute value on day i</dd>
 <dt><strong><code>path</code></strong> :&ensp;<code>string</code></dt>
 <dd>The path to the file/folder where the networks will be saved</dd>
 </dl>
 <h2 id="return">Return</h2>
-<p>nets:list
-List of nets of the simulation</p></div>
+<p>None</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -431,7 +447,6 @@ List of nets of the simulation</p></div>
     contact_tracking_efficiency = 0.8,
     use_random_seed = None,
     seed = None,
-    dump = False,
     dump_type = &#34;full&#34;,
     path = None):
     &#34;&#34;&#34;
@@ -489,15 +504,12 @@ List of nets of the simulation</p></div>
     seed: int
         The random seed value
 
-    dump: bool
-        If true dump networks to file, otherwise return the networks list
-        NB, if network simulation is too heavy, the dump can crash
-
     dump_type: string
-        Can be either [&#34;full&#34;, &#34;light&#34;]. In the first case, the full simulation is dumped.
-        Otherwise, only a report about node status is saved
+        Can be either [&#34;full&#34;, &#34;light&#34;]. In the first case, the full simulation (all nets structure) is dumped.
+        Otherwise, only a report about node status is saved.
+        NB, full method will use significally more RAM than light; also the dump will have much bigger size.
         The dumped file will have the following structure:
-        - a list of ig.Graph() if dump_type is full
+        - a dict containig simulation parameters and a list of ig.Graph() if dump_type is full
         - a dict[class] where class can be [S, E, I, R, D, quarantined, positive, tested, total] and value is a list of the corresponding attribute value on day i
 
     path: string
@@ -505,8 +517,7 @@ List of nets of the simulation</p></div>
 
     Return
     ------
-    nets:list
-        List of nets of the simulation
+    None
 
     &#34;&#34;&#34;
 
@@ -572,35 +583,60 @@ List of nets of the simulation</p></div>
     G = generate_network(n_of_families)
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
     init_infection(G, n_initial_infected_nodes)
-    nets = list()
+
+    nets = deque(maxlen = 14)
+    if dump_type == &#34;full&#34;:
+        to_dump = dict()
+        to_dump[&#34;nets&#34;] = list()
+        to_dump[&#34;parameters&#34;] = config
+    if dump_type == &#34;light&#34;:
+        to_dump = dict()
+        to_dump[&#39;S&#39;] = list()
+        to_dump[&#39;E&#39;] = list()
+        to_dump[&#39;I&#39;] = list()
+        to_dump[&#39;R&#39;] = list()
+        to_dump[&#39;D&#39;] = list()
+        to_dump[&#39;quarantined&#39;] = list()
+        to_dump[&#39;positive&#39;] = list()
+        to_dump[&#39;tested&#39;] = list()
+        to_dump[&#39;total&#39;] = list()
+        to_dump[&#39;parameters&#39;] = config
 
     if use_steps:
         for sim_index in range (0, number_of_steps):
-            report, net= step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
             nets.append(net.copy())
+            if dump_type == &#34;full&#34;:
+                to_dump[&#34;nets&#34;].append(net.copy())
+            if dump_type == &#34;light&#34;:
+                to_dump = update_dump_report(to_dump, net)
     else:
         exposed = n_initial_infected_nodes
         infected = 0
         sim_index = 0
         while((infected + exposed) != 0):
-            report, net= step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
             nets.append(net.copy())
             sim_index += 1
+
+            if dump_type == &#34;full&#34;:
+                to_dump.append(net.copy())
+            if dump_type == &#34;light&#34;:
+                to_dump = update_dump_report(to_dump, net)
+                
             infected = report[&#34;I&#34;]
             exposed = report[&#34;E&#34;]
-
             if infected + exposed == 0:
                 break
-    if dump:
-        dump_simulation(nets, path, dump_type, config)
-  
-    print(&#34;\n Simulation ended successfully \n&#34;)
 
-    return nets</code></pre>
+    with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
+        pickle.dump(to_dump, f, protocol = pickle.DEFAULT_PROTOCOL)
+  
+    print(&#34;\n Simulation ended successfully \n&#34;)</code></pre>
 </details>
 </dd>
 </dl>
