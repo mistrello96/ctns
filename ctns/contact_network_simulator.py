@@ -25,7 +25,8 @@ def run_simulation(n_of_families = 500,
     R_0 = 2.9,
     n_test = 5,
     policy_test = "Random",
-    contact_tracking_efficiency = 0.8,
+    contact_tracing_efficiency = 0.8,
+    contact_tracing_duration = 14,
     use_random_seed = None,
     seed = None,
     dump_type = "full",
@@ -76,7 +77,7 @@ def run_simulation(n_of_families = 500,
     policy_test: string
         Strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality
 
-    contact_tracking_efficiency: float
+    contact_tracing_efficiency: float
         The percentage of contacts successfully traced back in the past 14 days
 
     use_random_seed: bool
@@ -142,8 +143,11 @@ def run_simulation(n_of_families = 500,
     if not (policy_test == "Random" or policy_test == "Degree Centrality" or policy_test == "Betweenness Centrality"):
         print("Invalid test strategy")
         sys.exit()
-    if contact_tracking_efficiency < 0 or contact_tracking_efficiency > 1:
+    if contact_tracing_efficiency < 0 or contact_tracing_efficiency > 1:
         print("Invalid contact tracing efficiency")
+        sys.exit()
+    if contact_tracing_duration < 0:
+        print("Invalid contatc tracing duration")
         sys.exit()
     if restriction_duration < 0:
         print("Invalid restriction restriction_duration")
@@ -165,7 +169,7 @@ def run_simulation(n_of_families = 500,
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
     init_infection(G, n_initial_infected_nodes)
 
-    nets = deque(maxlen = 14)
+    nets = deque(maxlen = contact_tracing_duration)
     if dump_type == "full":
         to_dump = dict()
         to_dump["nets"] = list()
@@ -187,7 +191,7 @@ def run_simulation(n_of_families = 500,
         for sim_index in range (0, number_of_steps):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency)
             nets.append(net.copy())
             if dump_type == "full":
                 to_dump["nets"].append(net.copy())
@@ -200,7 +204,7 @@ def run_simulation(n_of_families = 500,
         while((infected + exposed) != 0):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency)
             nets.append(net.copy())
             sim_index += 1
 
@@ -234,7 +238,8 @@ def main():
     R_0 = None
     n_test = None
     policy_test = None
-    contact_tracking_efficiency = None
+    contact_tracing_efficiency = None
+    contact_tracing_duration = None
     use_random_seed = None
     seed = None
     dump_type = None
@@ -257,7 +262,8 @@ def main():
         R_0 = float(input("Please insert the value of R0: "))
         n_test = int(input("Please insert the number of available test per day: "))
         policy_test = input("Please insert strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality: ")
-        contact_tracking_efficiency = float(input("Please insert a value between 0 and 1 to set the contact tracing efficiency: "))
+        contact_tracing_efficiency = float(input("Please insert a value between 0 and 1 to set the contact tracing efficiency: "))
+        contact_tracing_duration = int(input("Please insert for how many days the contact tracing is computed: "))
         use_random_seed = int(input("Press 1 use a fixed a random seed or 0 to pick a random seed: "))
         if use_random_seed:
             seed = int(input("Please insert the random seed: "))
@@ -266,8 +272,8 @@ def main():
 
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
-            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed,
-            seed, dump_type, path)
+            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
+            use_random_seed, seed, dump_type, path)
     else:
         dump_type = input("Please insert the dump type. Can be either full of light: ")
         path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")
