@@ -27,7 +27,7 @@
 <pre><code class="python">import igraph as ig
 import numpy as np
 from pathlib import Path
-from collections import deque, Counter
+from collections import deque
 import sys, random, time, pickle
 try:
     from ctns.generator import generate_network, init_infection
@@ -51,7 +51,8 @@ def run_simulation(n_of_families = 500,
     R_0 = 2.9,
     n_test = 5,
     policy_test = &#34;Random&#34;,
-    contact_tracking_efficiency = 0.8,
+    contact_tracing_efficiency = 0.8,
+    contact_tracing_duration = 14,
     use_random_seed = None,
     seed = None,
     dump_type = &#34;full&#34;,
@@ -102,7 +103,7 @@ def run_simulation(n_of_families = 500,
     policy_test: string
         Strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality
 
-    contact_tracking_efficiency: float
+    contact_tracing_efficiency: float
         The percentage of contacts successfully traced back in the past 14 days
 
     use_random_seed: bool
@@ -168,8 +169,11 @@ def run_simulation(n_of_families = 500,
     if not (policy_test == &#34;Random&#34; or policy_test == &#34;Degree Centrality&#34; or policy_test == &#34;Betweenness Centrality&#34;):
         print(&#34;Invalid test strategy&#34;)
         sys.exit()
-    if contact_tracking_efficiency &lt; 0 or contact_tracking_efficiency &gt; 1:
+    if contact_tracing_efficiency &lt; 0 or contact_tracing_efficiency &gt; 1:
         print(&#34;Invalid contact tracing efficiency&#34;)
+        sys.exit()
+    if contact_tracing_duration &lt; 0:
+        print(&#34;Invalid contatc tracing duration&#34;)
         sys.exit()
     if restriction_duration &lt; 0:
         print(&#34;Invalid restriction restriction_duration&#34;)
@@ -191,7 +195,7 @@ def run_simulation(n_of_families = 500,
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
     init_infection(G, n_initial_infected_nodes)
 
-    nets = deque(maxlen = 14)
+    nets = deque(maxlen = contact_tracing_duration)
     if dump_type == &#34;full&#34;:
         to_dump = dict()
         to_dump[&#34;nets&#34;] = list()
@@ -213,7 +217,7 @@ def run_simulation(n_of_families = 500,
         for sim_index in range (0, number_of_steps):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency)
             nets.append(net.copy())
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
@@ -226,7 +230,7 @@ def run_simulation(n_of_families = 500,
         while((infected + exposed) != 0):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency)
             nets.append(net.copy())
             sim_index += 1
 
@@ -260,7 +264,8 @@ def main():
     R_0 = None
     n_test = None
     policy_test = None
-    contact_tracking_efficiency = None
+    contact_tracing_efficiency = None
+    contact_tracing_duration = None
     use_random_seed = None
     seed = None
     dump_type = None
@@ -283,7 +288,8 @@ def main():
         R_0 = float(input(&#34;Please insert the value of R0: &#34;))
         n_test = int(input(&#34;Please insert the number of available test per day: &#34;))
         policy_test = input(&#34;Please insert strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality: &#34;)
-        contact_tracking_efficiency = float(input(&#34;Please insert a value between 0 and 1 to set the contact tracing efficiency: &#34;))
+        contact_tracing_efficiency = float(input(&#34;Please insert a value between 0 and 1 to set the contact tracing efficiency: &#34;))
+        contact_tracing_duration = int(input(&#34;Please insert for how many days the contact tracing is computed: &#34;))
         use_random_seed = int(input(&#34;Press 1 use a fixed a random seed or 0 to pick a random seed: &#34;))
         if use_random_seed:
             seed = int(input(&#34;Please insert the random seed: &#34;))
@@ -292,8 +298,8 @@ def main():
 
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
-            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed,
-            seed, dump_type, path)
+            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
+            use_random_seed, seed, dump_type, path)
     else:
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
@@ -334,7 +340,8 @@ if __name__ == &#34;__main__&#34;:
     R_0 = None
     n_test = None
     policy_test = None
-    contact_tracking_efficiency = None
+    contact_tracing_efficiency = None
+    contact_tracing_duration = None
     use_random_seed = None
     seed = None
     dump_type = None
@@ -357,7 +364,8 @@ if __name__ == &#34;__main__&#34;:
         R_0 = float(input(&#34;Please insert the value of R0: &#34;))
         n_test = int(input(&#34;Please insert the number of available test per day: &#34;))
         policy_test = input(&#34;Please insert strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality: &#34;)
-        contact_tracking_efficiency = float(input(&#34;Please insert a value between 0 and 1 to set the contact tracing efficiency: &#34;))
+        contact_tracing_efficiency = float(input(&#34;Please insert a value between 0 and 1 to set the contact tracing efficiency: &#34;))
+        contact_tracing_duration = int(input(&#34;Please insert for how many days the contact tracing is computed: &#34;))
         use_random_seed = int(input(&#34;Press 1 use a fixed a random seed or 0 to pick a random seed: &#34;))
         if use_random_seed:
             seed = int(input(&#34;Please insert the random seed: &#34;))
@@ -366,8 +374,8 @@ if __name__ == &#34;__main__&#34;:
 
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
-            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracking_efficiency, use_random_seed,
-            seed, dump_type, path)
+            n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
+            use_random_seed, seed, dump_type, path)
     else:
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
@@ -375,7 +383,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="ctns.contact_network_simulator.run_simulation"><code class="name flex">
-<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=500, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=5, policy_test='Random', contact_tracking_efficiency=0.8, use_random_seed=None, seed=None, dump_type='full', path=None)</span>
+<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=500, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=5, policy_test='Random', contact_tracing_efficiency=0.8, contact_tracing_duration=14, use_random_seed=None, seed=None, dump_type='full', path=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Execute the simulation and dump/return resulting networks</p>
@@ -409,7 +417,7 @@ Note that family contacts are not included in this reduction</dd>
 <dd>Number of avaiable tests</dd>
 <dt><strong><code>policy_test</code></strong> :&ensp;<code>string</code></dt>
 <dd>Strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality</dd>
-<dt><strong><code>contact_tracking_efficiency</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>contact_tracing_efficiency</code></strong> :&ensp;<code>float</code></dt>
 <dd>The percentage of contacts successfully traced back in the past 14 days</dd>
 <dt><strong><code>use_random_seed</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Id use or not a fixed random seed</dd>
@@ -444,7 +452,8 @@ The dumped file will have the following structure:
     R_0 = 2.9,
     n_test = 5,
     policy_test = &#34;Random&#34;,
-    contact_tracking_efficiency = 0.8,
+    contact_tracing_efficiency = 0.8,
+    contact_tracing_duration = 14,
     use_random_seed = None,
     seed = None,
     dump_type = &#34;full&#34;,
@@ -495,7 +504,7 @@ The dumped file will have the following structure:
     policy_test: string
         Strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality
 
-    contact_tracking_efficiency: float
+    contact_tracing_efficiency: float
         The percentage of contacts successfully traced back in the past 14 days
 
     use_random_seed: bool
@@ -561,8 +570,11 @@ The dumped file will have the following structure:
     if not (policy_test == &#34;Random&#34; or policy_test == &#34;Degree Centrality&#34; or policy_test == &#34;Betweenness Centrality&#34;):
         print(&#34;Invalid test strategy&#34;)
         sys.exit()
-    if contact_tracking_efficiency &lt; 0 or contact_tracking_efficiency &gt; 1:
+    if contact_tracing_efficiency &lt; 0 or contact_tracing_efficiency &gt; 1:
         print(&#34;Invalid contact tracing efficiency&#34;)
+        sys.exit()
+    if contact_tracing_duration &lt; 0:
+        print(&#34;Invalid contatc tracing duration&#34;)
         sys.exit()
     if restriction_duration &lt; 0:
         print(&#34;Invalid restriction restriction_duration&#34;)
@@ -584,7 +596,7 @@ The dumped file will have the following structure:
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
     init_infection(G, n_initial_infected_nodes)
 
-    nets = deque(maxlen = 14)
+    nets = deque(maxlen = contact_tracing_duration)
     if dump_type == &#34;full&#34;:
         to_dump = dict()
         to_dump[&#34;nets&#34;] = list()
@@ -606,7 +618,7 @@ The dumped file will have the following structure:
         for sim_index in range (0, number_of_steps):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency)
             nets.append(net.copy())
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
@@ -619,7 +631,7 @@ The dumped file will have the following structure:
         while((infected + exposed) != 0):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency)
             nets.append(net.copy())
             sim_index += 1
 

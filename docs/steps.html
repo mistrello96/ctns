@@ -275,7 +275,7 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate):
                 if random.uniform(0, 1) &lt; 0.02:
                     node[&#34;needs_IC&#34;] = True
    
-def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracking_efficiency):
+def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency):
     &#34;&#34;&#34;
     Test some nodes of the network and put the in quarantine if needed
     
@@ -297,7 +297,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_trackin
         Test strategy
         Can be [&#34;Random, Degree Centrality, Betweenness Centrality&#34;]
     
-    contact_tracking_efficiency: float
+    contact_tracing_efficiency: float
         The percentage of contacts successfully traced
 
     Return
@@ -393,12 +393,11 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_trackin
     # to_quarantine will contain family contacts (quarantine 100%), 
     # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficiency
 
-    if len(found_positive) &gt; 0:
+    if len(found_positive) &gt; 0 and len(nets) &gt; 0:
         to_quarantine = set()
         possibly_quarantine = set()
-        # track to max 14 days before
-        for i in range(1, min(len(nets) + 1, 15)):
-            net = nets[-i]
+        # trace contacts
+        for net in nets:
             for edge in net.es:
                 if edge[&#34;category&#34;] == &#34;family_contacts&#34; \
                 and (edge.source in found_positive or edge.target in found_positive):
@@ -414,8 +413,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_trackin
         
         # set diff to remove double contacts
         possibly_quarantine = possibly_quarantine - to_quarantine
-        if len(possibly_quarantine) &gt; int(len(possibly_quarantine) * contact_tracking_efficiency):
-            possibly_quarantine = random.sample(possibly_quarantine, int(len(possibly_quarantine) * contact_tracking_efficiency))
+        if len(possibly_quarantine) &gt; int(len(possibly_quarantine) * contact_tracing_efficiency):
+            possibly_quarantine = random.sample(possibly_quarantine, int(len(possibly_quarantine) * contact_tracing_efficiency))
         else:
             possibly_quarantine = list(possibly_quarantine)
         to_quarantine = list(to_quarantine) + possibly_quarantine
@@ -512,7 +511,7 @@ def step_vaccine(G, n_vacc, policy_vacc, vacc_pool, agent_status_report):
 
 def step(G, step_index, incubation_days, infection_duration, transmission_rate,
          initial_day_restriction, restriction_duration, social_distance_strictness,
-         restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency):
+         restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency):
     &#34;&#34;&#34;
     Advance the simulation of one step
     
@@ -556,7 +555,7 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     policy_test: string
         Test strategy
     
-    contact_tracking_efficiency: float
+    contact_tracing_efficiency: float
         The percentage of contacts successfully traced
 
     Return
@@ -586,7 +585,7 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     step_spread(G, incubation_days, infection_duration, transmission_rate)
           
     # make some test on nodes     
-    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracking_efficiency)
+    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency)
 
     &#39;&#39;&#39;
     # if avaiable, vaccinate some nodes
@@ -933,7 +932,7 @@ The number of edges is chosen according to the sociability of the node</p>
 </details>
 </dd>
 <dt id="ctns.steps.step"><code class="name flex">
-<span>def <span class="ident">step</span></span>(<span>G, step_index, incubation_days, infection_duration, transmission_rate, initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency)</span>
+<span>def <span class="ident">step</span></span>(<span>G, step_index, incubation_days, infection_duration, transmission_rate, initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Advance the simulation of one step</p>
@@ -965,7 +964,7 @@ Note that family contacts are not included in this reduction</dd>
 <dd>Number of avaiable tests</dd>
 <dt><strong><code>policy_test</code></strong> :&ensp;<code>string</code></dt>
 <dd>Test strategy</dd>
-<dt><strong><code>contact_tracking_efficiency</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>contact_tracing_efficiency</code></strong> :&ensp;<code>float</code></dt>
 <dd>The percentage of contacts successfully traced</dd>
 </dl>
 <h2 id="return">Return</h2>
@@ -977,7 +976,7 @@ The contact network</p></div>
 </summary>
 <pre><code class="python">def step(G, step_index, incubation_days, infection_duration, transmission_rate,
          initial_day_restriction, restriction_duration, social_distance_strictness,
-         restriction_decreasing, nets, n_test, policy_test, contact_tracking_efficiency):
+         restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency):
     &#34;&#34;&#34;
     Advance the simulation of one step
     
@@ -1021,7 +1020,7 @@ The contact network</p></div>
     policy_test: string
         Test strategy
     
-    contact_tracking_efficiency: float
+    contact_tracing_efficiency: float
         The percentage of contacts successfully traced
 
     Return
@@ -1051,7 +1050,7 @@ The contact network</p></div>
     step_spread(G, incubation_days, infection_duration, transmission_rate)
           
     # make some test on nodes     
-    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracking_efficiency)
+    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency)
 
     &#39;&#39;&#39;
     # if avaiable, vaccinate some nodes
@@ -1225,7 +1224,7 @@ The contact network</p></div>
 </details>
 </dd>
 <dt id="ctns.steps.step_test"><code class="name flex">
-<span>def <span class="ident">step_test</span></span>(<span>G, nets, incubation_days, n_new_test, policy_test, contact_tracking_efficiency)</span>
+<span>def <span class="ident">step_test</span></span>(<span>G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test some nodes of the network and put the in quarantine if needed</p>
@@ -1242,7 +1241,7 @@ The contact network</p></div>
 <dt><strong><code>policy_test</code></strong> :&ensp;<code>string</code></dt>
 <dd>Test strategy
 Can be ["Random, Degree Centrality, Betweenness Centrality"]</dd>
-<dt><strong><code>contact_tracking_efficiency</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>contact_tracing_efficiency</code></strong> :&ensp;<code>float</code></dt>
 <dd>The percentage of contacts successfully traced</dd>
 </dl>
 <h2 id="return">Return</h2>
@@ -1251,7 +1250,7 @@ Can be ["Random, Degree Centrality, Betweenness Centrality"]</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracking_efficiency):
+<pre><code class="python">def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency):
     &#34;&#34;&#34;
     Test some nodes of the network and put the in quarantine if needed
     
@@ -1273,7 +1272,7 @@ Can be ["Random, Degree Centrality, Betweenness Centrality"]</dd>
         Test strategy
         Can be [&#34;Random, Degree Centrality, Betweenness Centrality&#34;]
     
-    contact_tracking_efficiency: float
+    contact_tracing_efficiency: float
         The percentage of contacts successfully traced
 
     Return
@@ -1369,12 +1368,11 @@ Can be ["Random, Degree Centrality, Betweenness Centrality"]</dd>
     # to_quarantine will contain family contacts (quarantine 100%), 
     # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficiency
 
-    if len(found_positive) &gt; 0:
+    if len(found_positive) &gt; 0 and len(nets) &gt; 0:
         to_quarantine = set()
         possibly_quarantine = set()
-        # track to max 14 days before
-        for i in range(1, min(len(nets) + 1, 15)):
-            net = nets[-i]
+        # trace contacts
+        for net in nets:
             for edge in net.es:
                 if edge[&#34;category&#34;] == &#34;family_contacts&#34; \
                 and (edge.source in found_positive or edge.target in found_positive):
@@ -1390,8 +1388,8 @@ Can be ["Random, Degree Centrality, Betweenness Centrality"]</dd>
         
         # set diff to remove double contacts
         possibly_quarantine = possibly_quarantine - to_quarantine
-        if len(possibly_quarantine) &gt; int(len(possibly_quarantine) * contact_tracking_efficiency):
-            possibly_quarantine = random.sample(possibly_quarantine, int(len(possibly_quarantine) * contact_tracking_efficiency))
+        if len(possibly_quarantine) &gt; int(len(possibly_quarantine) * contact_tracing_efficiency):
+            possibly_quarantine = random.sample(possibly_quarantine, int(len(possibly_quarantine) * contact_tracing_efficiency))
         else:
             possibly_quarantine = list(possibly_quarantine)
         to_quarantine = list(to_quarantine) + possibly_quarantine
