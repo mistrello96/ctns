@@ -1,7 +1,8 @@
 # CTNS
 
 Contact Tracing Network Simulator, a tool to simulate digital contact networks beetween people in a population where a disease is spreading.
-The simulation is highly customizable and will return (or dump) a time series of networks. We suggest to use (not jet available tool) to analize the results.
+The simulation is highly customizable and will return (or dump) a time series of networks. We suggest to use https://gitlab.com/migliouni/ctns_visualizer to analize the results.
+If you prefer to interact with this library througt a web app, you can take a look to https://gitlab.com/migliouni/ctns_simulator, which provides a web interface to run simulation and some summary plots.
 
 ## Getting Started
 
@@ -9,15 +10,13 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Installing
 
-To install this module you simply need to run:
+The easiest way to install this library is simply run:
 
 ```
 pip install ctns
 ```
 
 on you terminal.
-
-You can also clone this repo and run the contact_network_simulator file in the ctns folder to get an interactive window to customize and run your simulation.
 
 ### Usage
 
@@ -43,7 +42,7 @@ ctns.bat
 
 from Windows CMD/Power Shell.
 
-Remember to specify a path to a file for the network dump if needed.
+Remember to specify a path to a file for the network dump.
 
 You can alternatively clone the repo, navigate to the ctns/ctns folder and run
 
