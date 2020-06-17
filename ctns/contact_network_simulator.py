@@ -162,8 +162,25 @@ def run_simulation(n_of_families = 500,
         print("Invalid dump type")
         sys.exit()
 
-    config = locals()
+    # making parameters consistent
+    if restriction_duration == 0 or social_distance_strictness == 0:
+        restriction_decreasing = False
+        social_distance_strictness = 0
+        initial_day_restriction = 0
+        restriction_duration = 0
 
+    if n_test == 0:
+        policy_test = None
+        contact_tracing_efficiency = 0
+        contact_tracing_duration = 0
+
+    if contact_tracing_duration == 0 or contact_tracing_efficiency == 0:
+        contact_tracing_duration = 0
+        contact_tracing_efficiency = 0
+
+
+    config = locals()
+    a = time.perf_counter()
     # init network
     G = generate_network(n_of_families)
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
@@ -212,16 +229,17 @@ def run_simulation(n_of_families = 500,
                 to_dump.append(net.copy())
             if dump_type == "light":
                 to_dump = update_dump_report(to_dump, net)
-                
-            infected = report["I"]
-            exposed = report["E"]
+            
+            infected = to_dump["I"][-1]
+            exposed = to_dump["E"][-1]
             if infected + exposed == 0:
                 break
 
     with open(Path(path + ".pickle"), "wb") as f:
         pickle.dump(to_dump, f, protocol = pickle.DEFAULT_PROTOCOL)
-  
+    b = time.perf_counter()
     print("\n Simulation ended successfully \n")
+    print("time elapsed " + str(b-a))
 
 def main():
 
