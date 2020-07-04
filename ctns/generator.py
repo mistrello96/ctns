@@ -219,3 +219,7 @@ def init_infection(G, n_initial_infected_nodes):
         node["agent_status"] = "E"
         node["infected"] = True
         node["days_from_infection"] = 1
+
+    number_of_nodes = len(list(G.vs))
+    for node in G.vs:
+        node["probability_of_being_infected"] = n_initial_infected_nodes / number_of_nodes

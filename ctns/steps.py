@@ -195,6 +195,8 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate):
     
     """
 
+    old_prob =  G.vs["prob_inf"]
+
     for node in G.vs:
         # update parameters if node is infected
         if node["infected"] == True:
@@ -248,6 +250,15 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate):
                 
                 if random.uniform(0, 1) < 0.02:
                     node["needs_IC"] = True
+
+        # update prob of being infected
+        product_neighbors = 1
+        for contact in G.neighborhood(node)[1:]:
+            current_contact_weight = G[node, contact]
+            current_contact = (1 - old_prob[contact] * (1 - np.e**(-gamma * current_contact_weight))) 
+            product_neighbors = product_neighbors * current_contact
+        prob_not_inf = (1 - old_prob[node.index] * np.arctan(alpha * old_prob[node.index])) * product_neighbors       
+        node["prob_inf"] = 1 - prob_not_inf 
    
 def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency):
     """
