@@ -402,6 +402,20 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
             possibly_quarantine = list(possibly_quarantine)
         to_quarantine = list(to_quarantine) + possibly_quarantine
 
+        # update prob of being infected of current contact 
+        for node in to_quarantine:
+            for contact in G.neighborhood(node)[1:]:
+                current_contact_weight = G[G.vs[node], contact]
+                G.vs[contact]["prob_inf"] = G.vs[contact]["prob_inf"] + lambd * np.e**(-(1 / current_contact_weight)) * (1 - G.vs[contact]["prob_inf"])
+        
+        # update prob of being infected of past tracked contact 
+            for net_index in range(len(nets)):
+                net = nets[-net_index]
+                for contact in net.neighborhood(node)[1:]:
+                    if contact in to_quarantine:
+                        current_contact_weight = net[net.vs[node], contact]
+                        G.vs[contact]["prob_inf"] = G.vs[contact]["prob_inf"] + lambd * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - G.vs[contact]["prob_inf"])
+
         to_quarantine = [G.vs[i] for i in to_quarantine]
 
         # put them in quarantine
