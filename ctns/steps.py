@@ -171,7 +171,7 @@ def step_edges(G, restriction_value):
             toRemove.append(edge)
     G.delete_edges(toRemove)  
 
-def step_spread(G, incubation_days, infection_duration, transmission_rate):
+def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma):
     """
     Make the infection spread across the network
     
@@ -188,6 +188,9 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate):
     
     transmission_rate: float
         Value of the transmission rate for the disease in the network
+    
+    gamma: float
+        Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
 
     Return
     ------
@@ -260,7 +263,7 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate):
         prob_not_inf = (1 - old_prob[node.index] * np.arctan(alpha * old_prob[node.index])) * product_neighbors       
         node["prob_inf"] = 1 - prob_not_inf 
    
-def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency):
+def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency, alpha, lambdaa):
     """
     Test some nodes of the network and put the in quarantine if needed
     
@@ -284,6 +287,12 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
     
     contact_tracing_efficiency: float
         The percentage of contacts successfully traced
+
+    alpha: float
+        Parameter to regulate time-relate decay. Domain = (0, 1.557). Higher values corresponds to a lower time-related decay
+
+    lambdaa: float
+        Parameter to regulate influence of contacts with a positive. Domain = (0, 1). Higher values corresponds to stronger probability diffusion
 
     Return
     ------
@@ -320,22 +329,17 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
             node["test_result"] = 1
             node["quarantine"] = 14
             node["test_validity"] = 14
+            node["prob_inf"] = 1
             found_positive.add(node.index)
         else:
             node["test_result"] = 0
+            node["prob_inf"] = 0
             node["test_validity"] = incubation_days
+
+
 
     if policy_test == "Random" and n_new_test > 0:
         to_test = random.sample(low_priority_test_pool, min(len(low_priority_test_pool), n_new_test))
-        for node in to_test:
-            if node["infected"]:
-                node["test_result"] = 1
-                node["quarantine"] = 14
-                node["test_validity"] = 14
-                found_positive.add(node.index)
-            else:
-                node["test_result"] = 0
-                node["test_validity"] = incubation_days
 
     if policy_test == "Degree Centrality" and n_new_test > 0:
         low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
@@ -344,16 +348,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         sorted_pairs = sorted(zipped_lists, reverse = True)
         tuples = zip(*sorted_pairs)
         _, sorted_nodes = [ list(tuple) for tuple in  tuples]
-        for i in range(min(n_new_test, len(low_priority_test_pool))):
-            node = sorted_nodes[i]
-            if node["infected"]:
-                node["test_result"] = 1
-                node["quarantine"] = 14
-                node["test_validity"] = 14
-                found_positive.add(node.index)
-            else:
-                node["test_result"] = 0
-                node["test_validity"] = incubation_days
+        to_test = sorted_nodes[:min(n_new_test, len(low_priority_test_pool))]
 
     if policy_test == "Betweenness Centrality" and n_new_test > 0:
         low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
@@ -364,16 +359,19 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         sorted_pairs = sorted(zipped_lists, reverse = True)
         tuples = zip(*sorted_pairs)
         _, sorted_nodes = [ list(tuple) for tuple in  tuples]
-        for i in range(min(n_new_test, len(low_priority_test_pool))):
-            node = sorted_nodes[i]
-            if node["infected"]:
-                node["test_result"] = 1
-                node["quarantine"] = 14
-                node["test_validity"] = 14
-                found_positive.add(node.index)
-            else:
-                node["test_result"] = 0
-                node["test_validity"] = incubation_days
+        to_test = sorted_nodes[:min(n_new_test, len(low_priority_test_pool))]
+
+    for node in to_test:
+        if node["infected"]:
+            node["test_result"] = 1
+            node["quarantine"] = 14
+            node["test_validity"] = 14
+            node["prob_inf"] = 1
+            found_positive.add(node.index)
+        else:
+            node["test_result"] = 0
+            node["prob_inf"] = 0
+            node["test_validity"] = incubation_days
     
     # to_quarantine will contain family contacts (quarantine 100%), 
     # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficiency
@@ -407,96 +405,13 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         to_quarantine = [G.vs[i] for i in to_quarantine]
 
         # put them in quarantine
-        # Need test?
         if to_quarantine != list() and to_quarantine != None:
             for node in to_quarantine:
-                node["quarantine"] = 14  
-
-
-'''
-def step_vaccine(G, n_vacc, policy_vacc, vacc_pool, agent_status_report):
-    """
-    Vaccine some individuals in the network
-    
-    Parameters
-    ----------
-    G: ig.Graph()
-        The contact network
-    
-    n_vacc: int
-        Number of vaccines avaiable that day
-    
-    policy_vacc: string
-        How to distribute the daily avaiable vaccines
-        Can be ["Random, Degree Centrality, Betweenness Centrality, Improved Degree Centrality, Improved Betweenness Centrality"]
-    
-    agent_status_report: list
-        Report of nodes status
-
-    Return
-    ------
-    agent_status_report: list
-        Updated report of nodes status
-
-    """
-
-    if len(vacc_pool) > 0:
-        
-        # random policy
-        if policy_vacc == "Random":
-            if n_vacc >= len(vacc_pool):
-                for index in vacc_pool:
-                    agent_status_report[index] = "V"
-                    G.nodes[index]["agent_status"] = "V"
-            else:
-                random_selected_to_vaccinate = random.sample(vacc_pool, n_vacc)
-                for index in random_selected_to_vaccinate:
-                    agent_status_report[index] = "V"
-                    G.nodes[index]["agent_status"] = "V"
-        
-        # degree policy
-        elif policy_vacc == "Degree Centrality":
-            degree_results = G.degree(vacc_pool)
-            order_by_degree = sorted(degree_results, key=lambda x: x[1], reverse = True)
-
-            for node, value in order_by_degree[:n_vacc]:
-                agent_status_report[node] = "V"
-                G.nodes[node]["agent_status"] = "V"
-
-        elif policy_vacc == "Improved Degree Centrality":
-            Z = G.subgraph(vacc_pool)
-            degree_results = Z.degree()
-            order_by_degree = sorted(degree_results, key=lambda x: x[1], reverse = True)
-
-            for node, value in order_by_degree[:n_vacc]:
-                agent_status_report[node] = "V"
-                G.nodes[node]["agent_status"] = "V"
-
-        # Betweenness policy
-        elif policy_vacc == "Betweenness Centrality":
-            betweenness_results = {node: val for node, val in ig.betweenness_centrality(G).items() if node in vacc_pool}
-
-            order_by_betweenness = sorted(betweenness_results, key=betweenness_results.get, reverse = True)
-            
-            for node in order_by_betweenness[:n_vacc]:
-                agent_status_report[node] = "V"
-                G.nodes[node]["agent_status"] = "V"
-
-        elif policy_vacc == "Improved Betweenness Centrality":
-            betweenness_results = {node: val for node, val in ig.betweenness_centrality_subset(G, sources = vacc_pool, targets = vacc_pool).items() if node in vacc_pool}
-
-            order_by_betweenness = sorted(betweenness_results, key=betweenness_results.get, reverse = True)
-            
-            for node in order_by_betweenness[:n_vacc]:
-                agent_status_report[node] = "V"
-                G.nodes[node]["agent_status"] = "V"
-    return agent_status_report  
-
-'''
+                node["quarantine"] = 14
 
 def step(G, step_index, incubation_days, infection_duration, transmission_rate,
          initial_day_restriction, restriction_duration, social_distance_strictness,
-         restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency):
+         restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, alpha, lambdaa):
     """
     Advance the simulation of one step
     
@@ -543,6 +458,15 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     contact_tracing_efficiency: float
         The percentage of contacts successfully traced
 
+    gamma: float
+        Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
+
+    alpha: float
+        Parameter to regulate time-relate decay. Domain = (0, 1.557). Higher values corresponds to a lower time-related decay
+
+    lambdaa: float
+        Parameter to regulate influence of contacts with a positive. Domain = (0, 1). Higher values corresponds to stronger probability diffusion
+
     Return
     ------
     G: ig.Graph()
@@ -567,17 +491,11 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
             step_edges(G, 1)
     
     # spread infection
-    step_spread(G, incubation_days, infection_duration, transmission_rate)
+    step_spread(G, incubation_days, infection_duration, transmission_rate, gamma)
           
     # make some test on nodes     
     step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency)
 
-    '''
-    # if avaiable, vaccinate some nodes
-    if step_index >= initial_day_vaccination:
-        vacc_pool = [i for i in range(len(agent_status_report)) if agent_status_report[i] == "S"]
-        agent_status_report = step_vaccine(G, n_vacc, policy_vacc, vacc_pool, agent_status_report)
-    '''
     agent_status_report = list()
     for node in G.vs:
         agent_status_report.append(node["agent_status"])
