@@ -171,7 +171,7 @@ def step_edges(G, restriction_value):
             toRemove.append(edge)
     G.delete_edges(toRemove)  
 
-def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma):
+def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma, alpha):
     """
     Make the infection spread across the network
     
@@ -192,13 +192,16 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
     gamma: float
         Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
 
+    alpha: float
+        Parameter to regulate time-relate decay. Domain = (0, 1.557). Higher values corresponds to a lower time-related decay
+
     Return
     ------
     None
     
     """
 
-    old_prob =  G.vs["prob_inf"]
+    old_prob =  G.vs["probability_of_being_infected"]
 
     for node in G.vs:
         # update parameters if node is infected
@@ -261,9 +264,9 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
             current_contact = (1 - old_prob[contact] * (1 - np.e**(-gamma * current_contact_weight))) 
             product_neighbors = product_neighbors * current_contact
         prob_not_inf = (1 - old_prob[node.index] * np.arctan(alpha * old_prob[node.index])) * product_neighbors       
-        node["prob_inf"] = 1 - prob_not_inf 
+        node["probability_of_being_infected"] = 1 - prob_not_inf 
    
-def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency, alpha, lambdaa):
+def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency, lambdaa):
     """
     Test some nodes of the network and put the in quarantine if needed
     
@@ -287,9 +290,6 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
     
     contact_tracing_efficiency: float
         The percentage of contacts successfully traced
-
-    alpha: float
-        Parameter to regulate time-relate decay. Domain = (0, 1.557). Higher values corresponds to a lower time-related decay
 
     lambdaa: float
         Parameter to regulate influence of contacts with a positive. Domain = (0, 1). Higher values corresponds to stronger probability diffusion
@@ -329,14 +329,15 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
             node["test_result"] = 1
             node["quarantine"] = 14
             node["test_validity"] = 14
-            node["prob_inf"] = 1
+            node["probability_of_being_infected"] = 1
             found_positive.add(node.index)
         else:
             node["test_result"] = 0
-            node["prob_inf"] = 0
+            node["probability_of_being_infected"] = 0
             node["test_validity"] = incubation_days
 
 
+    to_test = list()
 
     if policy_test == "Random" and n_new_test > 0:
         to_test = random.sample(low_priority_test_pool, min(len(low_priority_test_pool), n_new_test))
@@ -366,11 +367,11 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
             node["test_result"] = 1
             node["quarantine"] = 14
             node["test_validity"] = 14
-            node["prob_inf"] = 1
+            node["probability_of_being_infected"] = 1
             found_positive.add(node.index)
         else:
             node["test_result"] = 0
-            node["prob_inf"] = 0
+            node["probability_of_being_infected"] = 0
             node["test_validity"] = incubation_days
     
     # to_quarantine will contain family contacts (quarantine 100%), 
@@ -406,7 +407,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         for node in to_quarantine:
             for contact in G.neighborhood(node)[1:]:
                 current_contact_weight = G[G.vs[node], contact]
-                G.vs[contact]["prob_inf"] = G.vs[contact]["prob_inf"] + lambd * np.e**(-(1 / current_contact_weight)) * (1 - G.vs[contact]["prob_inf"])
+                G.vs[contact]["probability_of_being_infected"] = G.vs[contact]["probability_of_being_infected"] \
+                                                                + lambdaa * np.e**(-(1 / current_contact_weight)) * (1 - G.vs[contact]["probability_of_being_infected"])
         
         # update prob of being infected of past tracked contact 
             for net_index in range(len(nets)):
@@ -414,7 +416,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
                 for contact in net.neighborhood(node)[1:]:
                     if contact in to_quarantine:
                         current_contact_weight = net[net.vs[node], contact]
-                        G.vs[contact]["prob_inf"] = G.vs[contact]["prob_inf"] + lambd * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - G.vs[contact]["prob_inf"])
+                        G.vs[contact]["probability_of_being_infected"] = G.vs[contact]["probability_of_being_infected"] \
+                                                                        + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - G.vs[contact]["probability_of_being_infected"])
 
         to_quarantine = [G.vs[i] for i in to_quarantine]
 
@@ -505,10 +508,10 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
             step_edges(G, 1)
     
     # spread infection
-    step_spread(G, incubation_days, infection_duration, transmission_rate, gamma)
+    step_spread(G, incubation_days, infection_duration, transmission_rate, gamma, alpha)
           
     # make some test on nodes     
-    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency)
+    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency, lambdaa)
 
     agent_status_report = list()
     for node in G.vs:

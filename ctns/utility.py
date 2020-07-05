@@ -92,7 +92,7 @@ def compute_TR(G, R_0, infection_duration, incubation_days):
     avr_deg = list()
     # compute average weighted degree on 20 steps
     for i in range (20):
-        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, "Random", 0)
+        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, "Random", 0, 0.5, 0.5, 0.5)
 
         degrees = G.strength(list(range(len(G.vs))), weights = "weight")
         avr_deg.append(sum(degrees) / len(degrees))
