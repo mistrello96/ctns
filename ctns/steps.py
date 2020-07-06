@@ -261,8 +261,8 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
         product_neighbors = 1
         for contact in G.neighborhood(node)[1:]:
             current_contact_weight = G[node, contact]
-            current_contact = (1 - old_prob[contact] * (1 - np.e**(-gamma * current_contact_weight))) 
-            product_neighbors = product_neighbors * current_contact
+            current_contact = 1 - old_prob[contact] * (1 - np.e**(-gamma * current_contact_weight))
+            product_neighbors *= current_contact
         prob_not_inf = (1 - old_prob[node.index] * np.arctan(alpha * old_prob[node.index])) * product_neighbors       
         node["probability_of_being_infected"] = 1 - prob_not_inf 
    
