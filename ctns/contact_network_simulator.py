@@ -29,8 +29,7 @@ def run_simulation(n_of_families = 500,
     contact_tracing_duration = 14,
     use_random_seed = None,
     seed = None,
-    gamma = 0.1,
-    alpha = 1.1,
+    gamma = 0.03,
     lambdaa = 0.2,
     dump_type = "full",
     path = None):
@@ -91,9 +90,6 @@ def run_simulation(n_of_families = 500,
 
     gamma: float
         Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
-
-    alpha: float
-        Parameter to regulate time-relate decay. Domain = (0, 1.557). Higher values corresponds to a lower time-related decay
 
     lambdaa: float
         Parameter to regulate influence of contacts with a positive. Domain = (0, 1). Higher values corresponds to stronger probability diffusion
@@ -173,9 +169,6 @@ def run_simulation(n_of_families = 500,
     if gamma < 0 :
         print("Value of gamma must greater than 0")
         sys.exit()
-    if alpha < 0 or alpha > 1.557:
-        print("Value of alpha must be 0 < alpha < 1.558")
-        sys.exit()
     if lambdaa < 0 or lambdaa > 1:
         print("Value of lambda must be 0 < lambda < 1")
         sys.exit()
@@ -229,7 +222,7 @@ def run_simulation(n_of_families = 500,
         for sim_index in range (0, number_of_steps):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, alpha, lambdaa)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, lambdaa)
             nets.append(net.copy())
             if dump_type == "full":
                 to_dump["nets"].append(net.copy())
@@ -242,7 +235,7 @@ def run_simulation(n_of_families = 500,
         while((infected + exposed) != 0):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, alpha, lambdaa)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, lambdaa)
             nets.append(net.copy())
             sim_index += 1
 
@@ -307,7 +300,6 @@ def main():
         if use_random_seed:
             seed = int(input("Please insert the random seed: "))
         gamma = float(input("Please insert the value of gamma: "))
-        alpha = float(input("Please insert the value of alpha: "))
         lambdaa = float(input("Please insert the value of lambdaa: "))
         dump_type = input("Please insert the dump type. Can be either full of light: ")
         path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")
@@ -315,7 +307,7 @@ def main():
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
-            use_random_seed, seed, gamma, alpha, lambdaa, dump_type, path)
+            use_random_seed, seed, gamma, lambdaa, dump_type, path)
     else:
         dump_type = input("Please insert the dump type. Can be either full of light: ")
         path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")

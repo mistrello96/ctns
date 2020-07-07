@@ -55,6 +55,8 @@ def run_simulation(n_of_families = 500,
     contact_tracing_duration = 14,
     use_random_seed = None,
     seed = None,
+    gamma = 0.03,
+    lambdaa = 0.2,
     dump_type = &#34;full&#34;,
     path = None):
     &#34;&#34;&#34;
@@ -111,6 +113,12 @@ def run_simulation(n_of_families = 500,
 
     seed: int
         The random seed value
+
+    gamma: float
+        Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
+
+    lambdaa: float
+        Parameter to regulate influence of contacts with a positive. Domain = (0, 1). Higher values corresponds to stronger probability diffusion
 
     dump_type: string
         Can be either [&#34;full&#34;, &#34;light&#34;]. In the first case, the full simulation (all nets structure) is dumped.
@@ -184,12 +192,35 @@ def run_simulation(n_of_families = 500,
     if social_distance_strictness == 0:
         restriction_decreasing = False
         restriction_duration = 0
+    if gamma &lt; 0 :
+        print(&#34;Value of gamma must greater than 0&#34;)
+        sys.exit()
+    if lambdaa &lt; 0 or lambdaa &gt; 1:
+        print(&#34;Value of lambda must be 0 &lt; lambda &lt; 1&#34;)
+        sys.exit()
     if dump_type != &#34;full&#34; and dump_type != &#34;light&#34;:
         print(&#34;Invalid dump type&#34;)
         sys.exit()
 
-    config = locals()
+    # making parameters consistent
+    if restriction_duration == 0 or social_distance_strictness == 0:
+        restriction_decreasing = False
+        social_distance_strictness = 0
+        initial_day_restriction = 0
+        restriction_duration = 0
 
+    if n_test == 0:
+        policy_test = None
+        contact_tracing_efficiency = 0
+        contact_tracing_duration = 0
+
+    if contact_tracing_duration == 0 or contact_tracing_efficiency == 0:
+        contact_tracing_duration = 0
+        contact_tracing_efficiency = 0
+
+
+    config = locals()
+    a = time.perf_counter()
     # init network
     G = generate_network(n_of_families)
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
@@ -217,7 +248,7 @@ def run_simulation(n_of_families = 500,
         for sim_index in range (0, number_of_steps):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, lambdaa)
             nets.append(net.copy())
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
@@ -230,7 +261,7 @@ def run_simulation(n_of_families = 500,
         while((infected + exposed) != 0):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, lambdaa)
             nets.append(net.copy())
             sim_index += 1
 
@@ -238,16 +269,17 @@ def run_simulation(n_of_families = 500,
                 to_dump.append(net.copy())
             if dump_type == &#34;light&#34;:
                 to_dump = update_dump_report(to_dump, net)
-                
-            infected = report[&#34;I&#34;]
-            exposed = report[&#34;E&#34;]
+            
+            infected = to_dump[&#34;I&#34;][-1]
+            exposed = to_dump[&#34;E&#34;][-1]
             if infected + exposed == 0:
                 break
 
     with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
         pickle.dump(to_dump, f, protocol = pickle.DEFAULT_PROTOCOL)
-  
+    b = time.perf_counter()
     print(&#34;\n Simulation ended successfully \n&#34;)
+    print(&#34;time elapsed &#34; + str(b-a))
 
 def main():
 
@@ -293,13 +325,15 @@ def main():
         use_random_seed = int(input(&#34;Press 1 use a fixed a random seed or 0 to pick a random seed: &#34;))
         if use_random_seed:
             seed = int(input(&#34;Please insert the random seed: &#34;))
+        gamma = float(input(&#34;Please insert the value of gamma: &#34;))
+        lambdaa = float(input(&#34;Please insert the value of lambdaa: &#34;))
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
 
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
-            use_random_seed, seed, dump_type, path)
+            use_random_seed, seed, gamma, lambdaa, dump_type, path)
     else:
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
@@ -369,13 +403,15 @@ if __name__ == &#34;__main__&#34;:
         use_random_seed = int(input(&#34;Press 1 use a fixed a random seed or 0 to pick a random seed: &#34;))
         if use_random_seed:
             seed = int(input(&#34;Please insert the random seed: &#34;))
+        gamma = float(input(&#34;Please insert the value of gamma: &#34;))
+        lambdaa = float(input(&#34;Please insert the value of lambdaa: &#34;))
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
 
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
-            use_random_seed, seed, dump_type, path)
+            use_random_seed, seed, gamma, lambdaa, dump_type, path)
     else:
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
@@ -383,7 +419,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="ctns.contact_network_simulator.run_simulation"><code class="name flex">
-<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=500, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=5, policy_test='Random', contact_tracing_efficiency=0.8, contact_tracing_duration=14, use_random_seed=None, seed=None, dump_type='full', path=None)</span>
+<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=500, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=5, policy_test='Random', contact_tracing_efficiency=0.8, contact_tracing_duration=14, use_random_seed=None, seed=None, gamma=0.03, lambdaa=0.2, dump_type='full', path=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Execute the simulation and dump/return resulting networks</p>
@@ -423,6 +459,10 @@ Note that family contacts are not included in this reduction</dd>
 <dd>Id use or not a fixed random seed</dd>
 <dt><strong><code>seed</code></strong> :&ensp;<code>int</code></dt>
 <dd>The random seed value</dd>
+<dt><strong><code>gamma</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion</dd>
+<dt><strong><code>lambdaa</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parameter to regulate influence of contacts with a positive. Domain = (0, 1). Higher values corresponds to stronger probability diffusion</dd>
 <dt><strong><code>dump_type</code></strong> :&ensp;<code>string</code></dt>
 <dd>Can be either ["full", "light"]. In the first case, the full simulation (all nets structure) is dumped.
 Otherwise, only a report about node status is saved.
@@ -456,6 +496,8 @@ The dumped file will have the following structure:
     contact_tracing_duration = 14,
     use_random_seed = None,
     seed = None,
+    gamma = 0.03,
+    lambdaa = 0.2,
     dump_type = &#34;full&#34;,
     path = None):
     &#34;&#34;&#34;
@@ -512,6 +554,12 @@ The dumped file will have the following structure:
 
     seed: int
         The random seed value
+
+    gamma: float
+        Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
+
+    lambdaa: float
+        Parameter to regulate influence of contacts with a positive. Domain = (0, 1). Higher values corresponds to stronger probability diffusion
 
     dump_type: string
         Can be either [&#34;full&#34;, &#34;light&#34;]. In the first case, the full simulation (all nets structure) is dumped.
@@ -585,12 +633,35 @@ The dumped file will have the following structure:
     if social_distance_strictness == 0:
         restriction_decreasing = False
         restriction_duration = 0
+    if gamma &lt; 0 :
+        print(&#34;Value of gamma must greater than 0&#34;)
+        sys.exit()
+    if lambdaa &lt; 0 or lambdaa &gt; 1:
+        print(&#34;Value of lambda must be 0 &lt; lambda &lt; 1&#34;)
+        sys.exit()
     if dump_type != &#34;full&#34; and dump_type != &#34;light&#34;:
         print(&#34;Invalid dump type&#34;)
         sys.exit()
 
-    config = locals()
+    # making parameters consistent
+    if restriction_duration == 0 or social_distance_strictness == 0:
+        restriction_decreasing = False
+        social_distance_strictness = 0
+        initial_day_restriction = 0
+        restriction_duration = 0
 
+    if n_test == 0:
+        policy_test = None
+        contact_tracing_efficiency = 0
+        contact_tracing_duration = 0
+
+    if contact_tracing_duration == 0 or contact_tracing_efficiency == 0:
+        contact_tracing_duration = 0
+        contact_tracing_efficiency = 0
+
+
+    config = locals()
+    a = time.perf_counter()
     # init network
     G = generate_network(n_of_families)
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
@@ -618,7 +689,7 @@ The dumped file will have the following structure:
         for sim_index in range (0, number_of_steps):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, lambdaa)
             nets.append(net.copy())
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
@@ -631,7 +702,7 @@ The dumped file will have the following structure:
         while((infected + exposed) != 0):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, lambdaa)
             nets.append(net.copy())
             sim_index += 1
 
@@ -639,16 +710,17 @@ The dumped file will have the following structure:
                 to_dump.append(net.copy())
             if dump_type == &#34;light&#34;:
                 to_dump = update_dump_report(to_dump, net)
-                
-            infected = report[&#34;I&#34;]
-            exposed = report[&#34;E&#34;]
+            
+            infected = to_dump[&#34;I&#34;][-1]
+            exposed = to_dump[&#34;E&#34;][-1]
             if infected + exposed == 0:
                 break
 
     with open(Path(path + &#34;.pickle&#34;), &#34;wb&#34;) as f:
         pickle.dump(to_dump, f, protocol = pickle.DEFAULT_PROTOCOL)
-  
-    print(&#34;\n Simulation ended successfully \n&#34;)</code></pre>
+    b = time.perf_counter()
+    print(&#34;\n Simulation ended successfully \n&#34;)
+    print(&#34;time elapsed &#34; + str(b-a))</code></pre>
 </details>
 </dd>
 </dl>

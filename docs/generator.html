@@ -244,7 +244,11 @@ def init_infection(G, n_initial_infected_nodes):
     for node in random.sample(list(G.vs), n_initial_infected_nodes):
         node[&#34;agent_status&#34;] = &#34;E&#34;
         node[&#34;infected&#34;] = True
-        node[&#34;days_from_infection&#34;] = 1</code></pre>
+        node[&#34;days_from_infection&#34;] = 1
+
+    number_of_nodes = len(list(G.vs))
+    for node in G.vs:
+        node[&#34;probability_of_being_infected&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
 </details>
 </section>
 <section>
@@ -545,7 +549,11 @@ This list is used to draw the new edges for the node in the step function</p>
     for node in random.sample(list(G.vs), n_initial_infected_nodes):
         node[&#34;agent_status&#34;] = &#34;E&#34;
         node[&#34;infected&#34;] = True
-        node[&#34;days_from_infection&#34;] = 1</code></pre>
+        node[&#34;days_from_infection&#34;] = 1
+
+    number_of_nodes = len(list(G.vs))
+    for node in G.vs:
+        node[&#34;probability_of_being_infected&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
 </details>
 </dd>
 </dl>
