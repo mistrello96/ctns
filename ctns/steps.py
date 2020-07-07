@@ -197,7 +197,8 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
     None
     
     """
-
+    method1 = [1] * len(list(G.vs))  
+    method2 = [1] * len(list(G.vs))  
     old_prob =  G.vs["probability_of_being_infected"]
 
     for node in G.vs:
@@ -254,24 +255,15 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
                 if random.uniform(0, 1) < 0.02:
                     node["needs_IC"] = True
 
-        # update prob of being infected
-        '''
-        product_neighbors = 1
-        for contact in G.neighborhood(node)[1:]:
-            current_contact_weight = G[node, contact]
-            current_contact = 1 - old_prob[contact] * (1 - np.e**(-gamma * current_contact_weight))
-            product_neighbors *= current_contact
-        prob_not_inf = (1 - old_prob[node.index] * np.tanh(old_prob[node.index] + 0.5)) * product_neighbors       
-        node["probability_of_being_infected"] = 1 - prob_not_inf 
-        '''
+    # update prob of being infected
     nodes_contact_probs = [1] * len(list(G.vs))   
     for edge in G.es:
         weight = edge["weight"]
-        nodes_contact_probs[edge.source] *= 1 - old_prob[edge.source] * (1 - np.e**(-gamma * weight))
-        nodes_contact_probs[edge.target] *= 1 - old_prob[edge.target] * (1 - np.e**(-gamma * weight))
+        nodes_contact_probs[edge.source] *= 1 - old_prob[edge.target] * (1 - np.e**(-gamma * weight))
+        nodes_contact_probs[edge.target] *= 1 - old_prob[edge.source] * (1 - np.e**(-gamma * weight))
 
     for node in G.vs:
-        node["probability_of_being_infected"] = 1 - (1 - old_prob[node.index] * np.tanh(old_prob[node.index] + 0.5)) * nodes_contact_probs[node.index]  
+        node["probability_of_being_infected"] = 1 - (1 - old_prob[node.index] * np.tanh(old_prob[node.index] + 0.5)) * nodes_contact_probs[node.index]
    
 def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency, lambdaa):
     """
