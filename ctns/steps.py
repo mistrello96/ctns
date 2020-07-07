@@ -197,8 +197,6 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
     None
     
     """
-    method1 = [1] * len(list(G.vs))  
-    method2 = [1] * len(list(G.vs))  
     old_prob =  G.vs["probability_of_being_infected"]
 
     for node in G.vs:
