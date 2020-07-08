@@ -213,7 +213,7 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
                 if node["agent_status"] == "D":
                     node["quarantine"] = 0
                     node["test_result"] = - 1
-                    node["prob_inf"] = -1
+                    node["prob_inf"] = 0
                 
             # if it is still infective, spread the infection with his contacts
             if node["agent_status"] == "I":
