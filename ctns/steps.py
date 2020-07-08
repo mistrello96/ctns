@@ -213,6 +213,7 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
                 if node["agent_status"] == "D":
                     node["quarantine"] = 0
                     node["test_result"] = - 1
+                    node["prob_inf"] = -1
                 
             # if it is still infective, spread the infection with his contacts
             if node["agent_status"] == "I":
@@ -264,8 +265,9 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
         nodes_contact_probs[target] *= 1 - old_prob[source] * (1 - np.e**(-gamma * weight))
 
     for node in G.vs:
-        index = node.index
-        node["prob_inf"] = 1 - (1 - old_prob[index] * np.tanh(old_prob[index] + 0.5)) * nodes_contact_probs[index]
+        if node["agent_status"] != "D" and not (node["test_result"] == 0 and node["agent_status"] == "R"):
+            index = node.index
+            node["prob_inf"] = 1 - (1 - old_prob[index] * np.tanh(old_prob[index] + 0.5)) * nodes_contact_probs[index]
    
 def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency, lambdaa):
     """
@@ -407,20 +409,22 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         # update prob of being infected of current contact 
         for node in to_quarantine:
             for contact in G.neighborhood(node)[1:]:
-                current_contact_weight = G[node, contact]
                 contact_node = G.vs[contact]
-                contact_node["prob_inf"] = contact_node["prob_inf"] \
-                                                                + lambdaa * np.e**(-(1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
+                if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
+                    current_contact_weight = G[node, contact]
+                    contact_node["prob_inf"] = contact_node["prob_inf"] \
+                                                                    + lambdaa * np.e**(-(1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
         
         # update prob of being infected of past tracked contact 
             for net_index in range(len(nets)):
                 net = nets[-net_index]
                 for contact in net.neighborhood(node)[1:]:
-                    if contact in to_quarantine:
-                        current_contact_weight = net[node, contact]
-                        contact_node = G.vs[contact]
-                        contact_node["prob_inf"] = contact_node["prob_inf"] \
-                                                                        + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
+                    contact_node = G.vs[contact]
+                    if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
+                        if contact in final_to_quarantine:
+                            current_contact_weight = net[node, contact]
+                            contact_node["prob_inf"] = contact_node["prob_inf"] \
+                                                        + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
 
         to_quarantine = [G.vs[i] for i in to_quarantine]
 
@@ -510,7 +514,7 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     # spread infection
     step_spread(G, incubation_days, infection_duration, transmission_rate, gamma)
           
-    # make some test on nodes     
+    # make some test on nodes
     step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency, lambdaa)
 
     agent_status_report = list()

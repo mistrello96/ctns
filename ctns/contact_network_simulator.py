@@ -12,7 +12,7 @@ except ImportError as e:
     from steps import step
     from utility import compute_TR, update_dump_report
 
-def run_simulation(n_of_families = 20,
+def run_simulation(n_of_families = 500,
     use_steps = True,
     number_of_steps = 150,
     incubation_days = 5,
@@ -21,16 +21,16 @@ def run_simulation(n_of_families = 20,
     restriction_duration = 21,
     social_distance_strictness = 2,
     restriction_decreasing = True,
-    n_initial_infected_nodes = 10,
+    n_initial_infected_nodes = 2,
     R_0 = 2.9,
-    n_test = 5,
+    n_test = 10,
     policy_test = "Random",
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
-    use_random_seed = None,
-    seed = None,
-    gamma = 0.01,
-    lambdaa = 0.3,
+    use_random_seed = True,
+    seed = 0,
+    gamma = 0.011,
+    lambdaa = 0.02,
     dump_type = "full",
     path = None):
     """
