@@ -421,7 +421,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
                 for contact in net.neighborhood(node)[1:]:
                     contact_node = G.vs[contact]
                     if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
-                        if contact in final_to_quarantine:
+                        if contact in to_quarantine:
                             current_contact_weight = net[node, contact]
                             contact_node["prob_inf"] = contact_node["prob_inf"] \
                                                         + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
