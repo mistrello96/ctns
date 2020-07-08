@@ -197,7 +197,7 @@ def step_edges(G, restriction_value):
             toRemove.append(edge)
     G.delete_edges(toRemove)  
 
-def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma, alpha):
+def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma):
     &#34;&#34;&#34;
     Make the infection spread across the network
     
@@ -223,8 +223,7 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
     None
     
     &#34;&#34;&#34;
-
-    old_prob =  G.vs[&#34;probability_of_being_infected&#34;]
+    old_prob =  G.vs[&#34;prob_inf&#34;]
 
     for node in G.vs:
         # update parameters if node is infected
@@ -280,14 +279,19 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
                 if random.uniform(0, 1) &lt; 0.02:
                     node[&#34;needs_IC&#34;] = True
 
-        # update prob of being infected
-        product_neighbors = 1
-        for contact in G.neighborhood(node)[1:]:
-            current_contact_weight = G[node, contact]
-            current_contact = 1 - old_prob[contact] * (1 - np.e**(-gamma * current_contact_weight))
-            product_neighbors *= current_contact
-        prob_not_inf = (1 - old_prob[node.index] * np.tanh(old_prob[node.index] + 0.5)) * product_neighbors       
-        node[&#34;probability_of_being_infected&#34;] = 1 - prob_not_inf 
+    # update prob of being infected
+    nodes_contact_probs = [1] * len(list(G.vs))   
+    
+    for edge in G.es:
+        weight = edge[&#34;weight&#34;]
+        source = edge.source
+        target = edge.target
+        nodes_contact_probs[source] *= 1 - old_prob[target] * (1 - np.e**(-gamma * weight))
+        nodes_contact_probs[target] *= 1 - old_prob[source] * (1 - np.e**(-gamma * weight))
+
+    for node in G.vs:
+        index = node.index
+        node[&#34;prob_inf&#34;] = 1 - (1 - old_prob[index] * np.tanh(old_prob[index] + 0.5)) * nodes_contact_probs[index]
    
 def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency, lambdaa):
     &#34;&#34;&#34;
@@ -352,11 +356,11 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
             node[&#34;test_result&#34;] = 1
             node[&#34;quarantine&#34;] = 14
             node[&#34;test_validity&#34;] = 14
-            node[&#34;probability_of_being_infected&#34;] = 1
+            node[&#34;prob_inf&#34;] = 1
             found_positive.add(node.index)
         else:
             node[&#34;test_result&#34;] = 0
-            node[&#34;probability_of_being_infected&#34;] = 0
+            node[&#34;prob_inf&#34;] = 0
             node[&#34;test_validity&#34;] = incubation_days
 
 
@@ -390,11 +394,11 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
             node[&#34;test_result&#34;] = 1
             node[&#34;quarantine&#34;] = 14
             node[&#34;test_validity&#34;] = 14
-            node[&#34;probability_of_being_infected&#34;] = 1
+            node[&#34;prob_inf&#34;] = 1
             found_positive.add(node.index)
         else:
             node[&#34;test_result&#34;] = 0
-            node[&#34;probability_of_being_infected&#34;] = 0
+            node[&#34;prob_inf&#34;] = 0
             node[&#34;test_validity&#34;] = incubation_days
     
     # to_quarantine will contain family contacts (quarantine 100%), 
@@ -429,18 +433,20 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         # update prob of being infected of current contact 
         for node in to_quarantine:
             for contact in G.neighborhood(node)[1:]:
-                current_contact_weight = G[G.vs[node], contact]
-                G.vs[contact][&#34;probability_of_being_infected&#34;] = G.vs[contact][&#34;probability_of_being_infected&#34;] \
-                                                                + lambdaa * np.e**(-(1 / current_contact_weight)) * (1 - G.vs[contact][&#34;probability_of_being_infected&#34;])
+                current_contact_weight = G[node, contact]
+                contact_node = G.vs[contact]
+                contact_node[&#34;prob_inf&#34;] = contact_node[&#34;prob_inf&#34;] \
+                                                                + lambdaa * np.e**(-(1 / current_contact_weight)) * (1 - contact_node[&#34;prob_inf&#34;])
         
         # update prob of being infected of past tracked contact 
             for net_index in range(len(nets)):
                 net = nets[-net_index]
                 for contact in net.neighborhood(node)[1:]:
                     if contact in to_quarantine:
-                        current_contact_weight = net[net.vs[node], contact]
-                        G.vs[contact][&#34;probability_of_being_infected&#34;] = G.vs[contact][&#34;probability_of_being_infected&#34;] \
-                                                                        + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - G.vs[contact][&#34;probability_of_being_infected&#34;])
+                        current_contact_weight = net[node, contact]
+                        contact_node = G.vs[contact]
+                        contact_node[&#34;prob_inf&#34;] = contact_node[&#34;prob_inf&#34;] \
+                                                                        + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - contact_node[&#34;prob_inf&#34;])
 
         to_quarantine = [G.vs[i] for i in to_quarantine]
 
@@ -1067,7 +1073,7 @@ The contact network</p></div>
 </details>
 </dd>
 <dt id="ctns.steps.step_spread"><code class="name flex">
-<span>def <span class="ident">step_spread</span></span>(<span>G, incubation_days, infection_duration, transmission_rate, gamma, alpha)</span>
+<span>def <span class="ident">step_spread</span></span>(<span>G, incubation_days, infection_duration, transmission_rate, gamma)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Make the infection spread across the network</p>
@@ -1090,7 +1096,7 @@ The contact network</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma, alpha):
+<pre><code class="python">def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma):
     &#34;&#34;&#34;
     Make the infection spread across the network
     
@@ -1116,8 +1122,7 @@ The contact network</p></div>
     None
     
     &#34;&#34;&#34;
-
-    old_prob =  G.vs[&#34;probability_of_being_infected&#34;]
+    old_prob =  G.vs[&#34;prob_inf&#34;]
 
     for node in G.vs:
         # update parameters if node is infected
@@ -1173,14 +1178,19 @@ The contact network</p></div>
                 if random.uniform(0, 1) &lt; 0.02:
                     node[&#34;needs_IC&#34;] = True
 
-        # update prob of being infected
-        product_neighbors = 1
-        for contact in G.neighborhood(node)[1:]:
-            current_contact_weight = G[node, contact]
-            current_contact = 1 - old_prob[contact] * (1 - np.e**(-gamma * current_contact_weight))
-            product_neighbors *= current_contact
-        prob_not_inf = (1 - old_prob[node.index] * np.tanh(old_prob[node.index] + 0.5)) * product_neighbors       
-        node[&#34;probability_of_being_infected&#34;] = 1 - prob_not_inf </code></pre>
+    # update prob of being infected
+    nodes_contact_probs = [1] * len(list(G.vs))   
+    
+    for edge in G.es:
+        weight = edge[&#34;weight&#34;]
+        source = edge.source
+        target = edge.target
+        nodes_contact_probs[source] *= 1 - old_prob[target] * (1 - np.e**(-gamma * weight))
+        nodes_contact_probs[target] *= 1 - old_prob[source] * (1 - np.e**(-gamma * weight))
+
+    for node in G.vs:
+        index = node.index
+        node[&#34;prob_inf&#34;] = 1 - (1 - old_prob[index] * np.tanh(old_prob[index] + 0.5)) * nodes_contact_probs[index]</code></pre>
 </details>
 </dd>
 <dt id="ctns.steps.step_test"><code class="name flex">
@@ -1275,11 +1285,11 @@ Can be ["Random, Degree Centrality, Betweenness Centrality"]</dd>
             node[&#34;test_result&#34;] = 1
             node[&#34;quarantine&#34;] = 14
             node[&#34;test_validity&#34;] = 14
-            node[&#34;probability_of_being_infected&#34;] = 1
+            node[&#34;prob_inf&#34;] = 1
             found_positive.add(node.index)
         else:
             node[&#34;test_result&#34;] = 0
-            node[&#34;probability_of_being_infected&#34;] = 0
+            node[&#34;prob_inf&#34;] = 0
             node[&#34;test_validity&#34;] = incubation_days
 
 
@@ -1313,11 +1323,11 @@ Can be ["Random, Degree Centrality, Betweenness Centrality"]</dd>
             node[&#34;test_result&#34;] = 1
             node[&#34;quarantine&#34;] = 14
             node[&#34;test_validity&#34;] = 14
-            node[&#34;probability_of_being_infected&#34;] = 1
+            node[&#34;prob_inf&#34;] = 1
             found_positive.add(node.index)
         else:
             node[&#34;test_result&#34;] = 0
-            node[&#34;probability_of_being_infected&#34;] = 0
+            node[&#34;prob_inf&#34;] = 0
             node[&#34;test_validity&#34;] = incubation_days
     
     # to_quarantine will contain family contacts (quarantine 100%), 
@@ -1352,18 +1362,20 @@ Can be ["Random, Degree Centrality, Betweenness Centrality"]</dd>
         # update prob of being infected of current contact 
         for node in to_quarantine:
             for contact in G.neighborhood(node)[1:]:
-                current_contact_weight = G[G.vs[node], contact]
-                G.vs[contact][&#34;probability_of_being_infected&#34;] = G.vs[contact][&#34;probability_of_being_infected&#34;] \
-                                                                + lambdaa * np.e**(-(1 / current_contact_weight)) * (1 - G.vs[contact][&#34;probability_of_being_infected&#34;])
+                current_contact_weight = G[node, contact]
+                contact_node = G.vs[contact]
+                contact_node[&#34;prob_inf&#34;] = contact_node[&#34;prob_inf&#34;] \
+                                                                + lambdaa * np.e**(-(1 / current_contact_weight)) * (1 - contact_node[&#34;prob_inf&#34;])
         
         # update prob of being infected of past tracked contact 
             for net_index in range(len(nets)):
                 net = nets[-net_index]
                 for contact in net.neighborhood(node)[1:]:
                     if contact in to_quarantine:
-                        current_contact_weight = net[net.vs[node], contact]
-                        G.vs[contact][&#34;probability_of_being_infected&#34;] = G.vs[contact][&#34;probability_of_being_infected&#34;] \
-                                                                        + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - G.vs[contact][&#34;probability_of_being_infected&#34;])
+                        current_contact_weight = net[node, contact]
+                        contact_node = G.vs[contact]
+                        contact_node[&#34;prob_inf&#34;] = contact_node[&#34;prob_inf&#34;] \
+                                                                        + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - contact_node[&#34;prob_inf&#34;])
 
         to_quarantine = [G.vs[i] for i in to_quarantine]
 

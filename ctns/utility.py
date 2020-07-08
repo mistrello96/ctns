@@ -57,7 +57,7 @@ def reset_network(G):
         node["agent_status"] = 'S'
         node["infected"] = False
         node["days_from_infection"] = 0
-        node["probability_of_being_infected"] = 0.0
+        node["prob_inf"] = 0.0
         node["quarantine"] = 0
         node["test_validity"] = 0
         node["test_result"] = -1

@@ -206,7 +206,7 @@ def generate_network(n_of_families):
         node[&#34;agent_status&#34;] = &#39;S&#39;
         node[&#34;infected&#34;] = False
         node[&#34;days_from_infection&#34;] = 0
-        node[&#34;probability_of_being_infected&#34;] = 0.0
+        node[&#34;prob_inf&#34;] = 0.0
         node[&#34;quarantine&#34;] = 0
         node[&#34;test_validity&#34;] = 0
         node[&#34;test_result&#34;] = -1
@@ -248,7 +248,7 @@ def init_infection(G, n_initial_infected_nodes):
 
     number_of_nodes = len(list(G.vs))
     for node in G.vs:
-        node[&#34;probability_of_being_infected&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
+        node[&#34;prob_inf&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
 </details>
 </section>
 <section>
@@ -369,7 +369,7 @@ The contact network</p></div>
         node[&#34;agent_status&#34;] = &#39;S&#39;
         node[&#34;infected&#34;] = False
         node[&#34;days_from_infection&#34;] = 0
-        node[&#34;probability_of_being_infected&#34;] = 0.0
+        node[&#34;prob_inf&#34;] = 0.0
         node[&#34;quarantine&#34;] = 0
         node[&#34;test_validity&#34;] = 0
         node[&#34;test_result&#34;] = -1
@@ -553,7 +553,7 @@ This list is used to draw the new edges for the node in the step function</p>
 
     number_of_nodes = len(list(G.vs))
     for node in G.vs:
-        node[&#34;probability_of_being_infected&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
+        node[&#34;prob_inf&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
 </details>
 </dd>
 </dl>

@@ -180,7 +180,7 @@ def generate_network(n_of_families):
         node["agent_status"] = 'S'
         node["infected"] = False
         node["days_from_infection"] = 0
-        node["probability_of_being_infected"] = 0.0
+        node["prob_inf"] = 0.0
         node["quarantine"] = 0
         node["test_validity"] = 0
         node["test_result"] = -1
@@ -222,4 +222,4 @@ def init_infection(G, n_initial_infected_nodes):
 
     number_of_nodes = len(list(G.vs))
     for node in G.vs:
-        node["probability_of_being_infected"] = n_initial_infected_nodes / number_of_nodes
+        node["prob_inf"] = n_initial_infected_nodes / number_of_nodes

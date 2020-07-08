@@ -38,7 +38,7 @@ except ImportError as e:
     from steps import step
     from utility import compute_TR, update_dump_report
 
-def run_simulation(n_of_families = 500,
+def run_simulation(n_of_families = 20,
     use_steps = True,
     number_of_steps = 150,
     incubation_days = 5,
@@ -55,8 +55,8 @@ def run_simulation(n_of_families = 500,
     contact_tracing_duration = 14,
     use_random_seed = None,
     seed = None,
-    gamma = 0.03,
-    lambdaa = 0.2,
+    gamma = 0.01,
+    lambdaa = 0.3,
     dump_type = &#34;full&#34;,
     path = None):
     &#34;&#34;&#34;
@@ -419,7 +419,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="ctns.contact_network_simulator.run_simulation"><code class="name flex">
-<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=500, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=5, policy_test='Random', contact_tracing_efficiency=0.8, contact_tracing_duration=14, use_random_seed=None, seed=None, gamma=0.03, lambdaa=0.2, dump_type='full', path=None)</span>
+<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=20, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=5, policy_test='Random', contact_tracing_efficiency=0.8, contact_tracing_duration=14, use_random_seed=None, seed=None, gamma=0.01, lambdaa=0.3, dump_type='full', path=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Execute the simulation and dump/return resulting networks</p>
@@ -479,7 +479,7 @@ The dumped file will have the following structure:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def run_simulation(n_of_families = 500,
+<pre><code class="python">def run_simulation(n_of_families = 20,
     use_steps = True,
     number_of_steps = 150,
     incubation_days = 5,
@@ -496,8 +496,8 @@ The dumped file will have the following structure:
     contact_tracing_duration = 14,
     use_random_seed = None,
     seed = None,
-    gamma = 0.03,
-    lambdaa = 0.2,
+    gamma = 0.01,
+    lambdaa = 0.3,
     dump_type = &#34;full&#34;,
     path = None):
     &#34;&#34;&#34;
