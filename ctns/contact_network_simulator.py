@@ -29,6 +29,7 @@ def run_simulation(n_of_families = 500,
     contact_tracing_duration = 14,
     use_random_seed = True,
     seed = 0,
+    use_probabilities = False,
     gamma = 0.011,
     lambdaa = 0.02,
     dump_type = "full",
@@ -87,6 +88,9 @@ def run_simulation(n_of_families = 500,
 
     seed: int
         The random seed value
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
 
     gamma: float
         Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
@@ -192,13 +196,17 @@ def run_simulation(n_of_families = 500,
         contact_tracing_duration = 0
         contact_tracing_efficiency = 0
 
+    if not use_probabilities:
+        gamma = 0
+        lambdaa = 0
+
 
     config = locals()
     a = time.perf_counter()
     # init network
-    G = generate_network(n_of_families)
+    G = generate_network(n_of_families, use_probabilities)
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
-    init_infection(G, n_initial_infected_nodes)
+    init_infection(G, n_initial_infected_nodes, use_probabilities)
 
     nets = deque(maxlen = contact_tracing_duration)
     if dump_type == "full":
@@ -222,7 +230,8 @@ def run_simulation(n_of_families = 500,
         for sim_index in range (0, number_of_steps):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, lambdaa)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
+                             use_probabilities, gamma, lambdaa)
             nets.append(net.copy())
             if dump_type == "full":
                 to_dump["nets"].append(net.copy())
@@ -235,7 +244,8 @@ def run_simulation(n_of_families = 500,
         while((infected + exposed) != 0):
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
-                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, lambdaa)
+                             restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
+                             use_probabilities, gamma, lambdaa)
             nets.append(net.copy())
             sim_index += 1
 
@@ -275,6 +285,9 @@ def main():
     use_random_seed = None
     seed = None
     dump_type = None
+    use_probabilities = None
+    gamma = None
+    lambdaa = None
     path = None
 
     user_interaction = int(input("Press 0 to load the default values or 1 to manually input the configuration for the simulation: "))
@@ -299,15 +312,17 @@ def main():
         use_random_seed = int(input("Press 1 use a fixed a random seed or 0 to pick a random seed: "))
         if use_random_seed:
             seed = int(input("Please insert the random seed: "))
-        gamma = float(input("Please insert the value of gamma: "))
-        lambdaa = float(input("Please insert the value of lambdaa: "))
+        use_probabilities = int(input("Press 1 to enable estimation of probabilities of being infected, 0 otherwise: "))
+        if use_probabilities:
+            gamma = float(input("Please insert the value of gamma: "))
+            lambdaa = float(input("Please insert the value of lambdaa: "))
         dump_type = input("Please insert the dump type. Can be either full of light: ")
         path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")
 
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
-            use_random_seed, seed, gamma, lambdaa, dump_type, path)
+            use_random_seed, seed, use_probabilities, gamma, lambdaa, dump_type, path)
     else:
         dump_type = input("Please insert the dump type. Can be either full of light: ")
         path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")

@@ -171,7 +171,7 @@ def step_edges(G, restriction_value):
             toRemove.append(edge)
     G.delete_edges(toRemove)  
 
-def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma):
+def step_spread(G, incubation_days, infection_duration, transmission_rate, use_probabilities, gamma):
     """
     Make the infection spread across the network
     
@@ -188,7 +188,10 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
     
     transmission_rate: float
         Value of the transmission rate for the disease in the network
-    
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
+
     gamma: float
         Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
 
@@ -197,7 +200,8 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
     None
     
     """
-    old_prob =  G.vs["prob_inf"]
+    if use_probabilities:
+        old_prob =  G.vs["prob_inf"]
 
     for node in G.vs:
         # update parameters if node is infected
@@ -255,21 +259,22 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, gamma
                     node["needs_IC"] = True
 
     # update prob of being infected
-    nodes_contact_probs = [1] * len(list(G.vs))   
-    
-    for edge in G.es:
-        weight = edge["weight"]
-        source = edge.source
-        target = edge.target
-        nodes_contact_probs[source] *= 1 - old_prob[target] * (1 - np.e**(-gamma * weight))
-        nodes_contact_probs[target] *= 1 - old_prob[source] * (1 - np.e**(-gamma * weight))
+    if use_probabilities:
+        nodes_contact_probs = [1] * len(list(G.vs))   
+        
+        for edge in G.es:
+            weight = edge["weight"]
+            source = edge.source
+            target = edge.target
+            nodes_contact_probs[source] *= 1 - old_prob[target] * (1 - np.e**(-gamma * weight))
+            nodes_contact_probs[target] *= 1 - old_prob[source] * (1 - np.e**(-gamma * weight))
 
-    for node in G.vs:
-        if node["agent_status"] != "D" and not (node["test_result"] == 0 and node["agent_status"] == "R"):
-            index = node.index
-            node["prob_inf"] = 1 - (1 - old_prob[index] * np.tanh(old_prob[index] + 0.5)) * nodes_contact_probs[index]
+        for node in G.vs:
+            if node["agent_status"] != "D" and not (node["test_result"] == 0 and node["agent_status"] == "R"):
+                index = node.index
+                node["prob_inf"] = 1 - (1 - old_prob[index] * np.tanh(old_prob[index] + 0.5)) * nodes_contact_probs[index]
    
-def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency, lambdaa):
+def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency, use_probabilities, lambdaa):
     """
     Test some nodes of the network and put the in quarantine if needed
     
@@ -293,6 +298,9 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
     
     contact_tracing_efficiency: float
         The percentage of contacts successfully traced
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
 
     lambdaa: float
         Parameter to regulate influence of contacts with a positive. Domain = (0, 1). Higher values corresponds to stronger probability diffusion
@@ -406,25 +414,26 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
             possibly_quarantine = list(possibly_quarantine)
         to_quarantine = list(to_quarantine) + possibly_quarantine
 
-        # update prob of being infected of current contact 
-        for node in to_quarantine:
-            for contact in G.neighborhood(node)[1:]:
-                contact_node = G.vs[contact]
-                if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
-                    current_contact_weight = G[node, contact]
-                    contact_node["prob_inf"] = contact_node["prob_inf"] \
-                                                                    + lambdaa * np.e**(-(1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
-        
-        # update prob of being infected of past tracked contact 
-            for net_index in range(len(nets)):
-                net = nets[-net_index]
-                for contact in net.neighborhood(node)[1:]:
+        if use_probabilities:
+            # update prob of being infected of current contact 
+            for node in to_quarantine:
+                for contact in G.neighborhood(node)[1:]:
                     contact_node = G.vs[contact]
                     if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
-                        if contact in to_quarantine:
-                            current_contact_weight = net[node, contact]
-                            contact_node["prob_inf"] = contact_node["prob_inf"] \
-                                                        + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
+                        current_contact_weight = G[node, contact]
+                        contact_node["prob_inf"] = contact_node["prob_inf"] \
+                                                                        + lambdaa * np.e**(-(1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
+            
+            # update prob of being infected of past tracked contact 
+                for net_index in range(len(nets)):
+                    net = nets[-net_index]
+                    for contact in net.neighborhood(node)[1:]:
+                        contact_node = G.vs[contact]
+                        if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
+                            if contact in to_quarantine:
+                                current_contact_weight = net[node, contact]
+                                contact_node["prob_inf"] = contact_node["prob_inf"] \
+                                                            + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
 
         to_quarantine = [G.vs[i] for i in to_quarantine]
 
@@ -435,7 +444,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
 def step(G, step_index, incubation_days, infection_duration, transmission_rate,
          initial_day_restriction, restriction_duration, social_distance_strictness,
-         restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency, gamma, lambdaa):
+         restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
+         use_probabilities, gamma, lambdaa):
     """
     Advance the simulation of one step
     
@@ -482,6 +492,9 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     contact_tracing_efficiency: float
         The percentage of contacts successfully traced
 
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
+
     gamma: float
         Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
 
@@ -512,10 +525,10 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
             step_edges(G, 1)
     
     # spread infection
-    step_spread(G, incubation_days, infection_duration, transmission_rate, gamma)
+    step_spread(G, incubation_days, infection_duration, transmission_rate, use_probabilities, gamma)
           
     # make some test on nodes
-    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency, lambdaa)
+    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency, use_probabilities, lambdaa)
 
     agent_status_report = list()
     for node in G.vs:
