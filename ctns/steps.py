@@ -295,7 +295,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
     policy_test: string
         Test strategy
-        Can be ["Random, Degree Centrality, Betweenness Centrality"]
+        Can be ["Random, Degree Centrality, Betweenness Centrality, PBI"]
     
     contact_tracing_efficiency: float
         The percentage of contacts successfully traced
@@ -343,28 +343,25 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
     to_test = list()
 
-    if policy_test == "Random" and n_new_test > 0:
-        to_test = random.sample(low_priority_test_pool, min(len(low_priority_test_pool), n_new_test))
+    if n_new_test:
+        if policy_test == "Random":
+            to_test = random.sample(low_priority_test_pool, min(len(low_priority_test_pool), n_new_test))
 
-    if policy_test == "Degree Centrality" and n_new_test > 0:
-        low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
-        degree_results = G.strength(low_priority_test_pool_index, weights = "weight")
-        zipped_lists = zip(degree_results, low_priority_test_pool)
-        sorted_pairs = sorted(zipped_lists, reverse = True)
-        tuples = zip(*sorted_pairs)
-        _, sorted_nodes = [ list(tuple) for tuple in  tuples]
-        to_test = sorted_nodes[:min(n_new_test, len(low_priority_test_pool))]
+        if policy_test == "Degree Centrality":
+            low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
+            degree_results = G.strength(low_priority_test_pool_index, weights = "weight")
+            to_test = retrive_to_test(low_priority_test_pool, degree_results, n_new_test)
 
-    if policy_test == "Betweenness Centrality" and n_new_test > 0:
-        low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
-        betweenness_results = G.betweenness(low_priority_test_pool_index, 
-                                            directed = False, weights = "weight",
-                                            cutoff = None)
-        zipped_lists = zip(betweenness_results, low_priority_test_pool)
-        sorted_pairs = sorted(zipped_lists, reverse = True)
-        tuples = zip(*sorted_pairs)
-        _, sorted_nodes = [ list(tuple) for tuple in  tuples]
-        to_test = sorted_nodes[:min(n_new_test, len(low_priority_test_pool))]
+        if policy_test == "Betweenness Centrality":
+            low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
+            betweenness_results = G.betweenness(low_priority_test_pool_index, 
+                                                directed = False, weights = "weight",
+                                                cutoff = None)
+            to_test = retrive_to_test(low_priority_test_pool, betweenness_results, n_new_test)
+
+        if policy_test == "PBI":
+            probs_infected = G.vs["prob_inf"]
+            to_test = retrive_to_test(low_priority_test_pool, probs_infected, n_new_test)
 
     for node in to_test:
         result = perform_test(node, incubation_days, use_probabilities)
@@ -614,3 +611,39 @@ def perform_test(node, incubation_days, use_probabilities):
         return False
 
     return None
+
+def retrive_to_test(nodes, values, n_new_test, reverse = True):
+    """
+    Test some nodes of the network and put the in quarantine if needed
+    
+    Parameters
+    ----------
+
+    nodes: list
+        List of all nodes that needs a test
+
+    values: list
+        List of values used to sort the previous list
+
+    n_new_test: int
+        Number of new avaiable tests
+
+    reverse: bool
+        Sort using descending order
+
+    Return
+    ------
+    to_test: list
+        List of nodes that will be tested
+
+    """
+
+    to_test = list()
+
+    zipped_lists = zip(values, nodes)
+    sorted_pairs = sorted(zipped_lists, reverse = reverse)
+    tuples = zip(*sorted_pairs)
+    _, sorted_nodes = [ list(tuple) for tuple in  tuples]
+    to_test = sorted_nodes[:min(n_new_test, len(nodes))]
+
+    return to_test
