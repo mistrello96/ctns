@@ -86,7 +86,7 @@ def generate_node_family_attribute(G, distribution):
                 if source != target:
                     G.vs[source]["family_contacts"].append((source, target))  
 
-def generate_network(n_of_families):
+def generate_network(n_of_families, use_probabilities):
     """
     Generte contact network nodes
     
@@ -94,6 +94,9 @@ def generate_network(n_of_families):
     ----------
     n_of_families: int
         Number of families in the network
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
         
     Return
     ------
@@ -180,12 +183,13 @@ def generate_network(n_of_families):
         node["agent_status"] = 'S'
         node["infected"] = False
         node["days_from_infection"] = 0
-        node["probability_of_being_infected"] = 0.0
         node["quarantine"] = 0
         node["test_validity"] = 0
         node["test_result"] = -1
         node["symptoms"] = list()
         node["needs_IC"] = False
+        if use_probabilities:
+            node["prob_inf"] = 0.0
 
     # GENERATE NODE LIST ATTRIBUTES
     # generate families contact attribute in nodes
@@ -197,7 +201,7 @@ def generate_network(n_of_families):
 
     return G  
 
-def init_infection(G, n_initial_infected_nodes):
+def init_infection(G, n_initial_infected_nodes, use_probabilities):
     """
     Make random nodes infected in the network
     
@@ -209,6 +213,9 @@ def init_infection(G, n_initial_infected_nodes):
     n_initial_infected_nodes: int
         Number of infected nodes to put on the network
 
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
+
     Return
     ------
     None
@@ -219,3 +226,8 @@ def init_infection(G, n_initial_infected_nodes):
         node["agent_status"] = "E"
         node["infected"] = True
         node["days_from_infection"] = 1
+
+    if use_probabilities:
+        number_of_nodes = len(list(G.vs))
+        for node in G.vs:
+            node["prob_inf"] = n_initial_infected_nodes / number_of_nodes

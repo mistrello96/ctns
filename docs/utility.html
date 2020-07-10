@@ -83,7 +83,7 @@ def reset_network(G):
         node[&#34;agent_status&#34;] = &#39;S&#39;
         node[&#34;infected&#34;] = False
         node[&#34;days_from_infection&#34;] = 0
-        node[&#34;probability_of_being_infected&#34;] = 0.0
+        node[&#34;prob_inf&#34;] = 0.0
         node[&#34;quarantine&#34;] = 0
         node[&#34;test_validity&#34;] = 0
         node[&#34;test_result&#34;] = -1
@@ -118,7 +118,7 @@ def compute_TR(G, R_0, infection_duration, incubation_days):
     avr_deg = list()
     # compute average weighted degree on 20 steps
     for i in range (20):
-        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, &#34;Random&#34;, 0)
+        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, &#34;Random&#34;, 0, False, 0.5, 0.5)
 
         degrees = G.strength(list(range(len(G.vs))), weights = &#34;weight&#34;)
         avr_deg.append(sum(degrees) / len(degrees))
@@ -167,101 +167,7 @@ def update_dump_report(to_dump, net):
     to_dump[&#39;tested&#39;].append(tested)
     to_dump[&#39;total&#39;].append(sum(network_report.values()))
 
-    return to_dump
-
-&#39;&#39;&#39;
-
-def plot_degree_dist(G, node_sociability = None, edge_category = None, title = None, path = None):
-    &#34;&#34;&#34;
-    Print degree probability distribution of the network.
-    node_sociability and edge_category can be used to filter only certain types of
-    nodes and edges
-    
-    Parameters
-    ----------
-    G: ig.Graph()
-        The contact network
-
-    node_sociability: string
-        Consider only nodes that have sociability == node_sociability
-
-    edge_category: string
-        Consider only edges that have category == edge_category
-
-    title: string
-        The title of the plot
-
-    path: string
-        Path to the folder where to save images
-
-    Return
-    ------
-    None
-
-    &#34;&#34;&#34;
-
-    plt.figure(figsize = (8, 6), dpi = 300)
-    if edge_category != None:
-        G = G.copy()
-        toRemove = []
-        for edge in G.es:
-            if edge[&#34;category&#34;] != edge_category:
-                toRemove.append(edge.index)
-        G.delete_edges(toRemove)
-
-
-    if node_sociability == None:
-        degs = G.degree()
-    else:
-        selected_nodes = list()
-        for node in G.vs:
-            if node[&#39;sociability&#39;] == node_sociability:
-                selected_nodes.append(node)
-        degs = G.degree(selected_nodes) 
-
-    counted_degs = Counter(degs)
-    for key in counted_degs.keys():
-        counted_degs[key] = counted_degs[key] / len(G.vs())
-        plt.scatter(key, counted_degs[key], marker = &#39;.&#39;, color = &#34;red&#34;, s = 10)
-    plt.xticks(fontsize = 12)
-    plt.yticks(fontsize = 12)
-    plt.xlabel(&#34;Degree&#34;, fontsize = 15)
-    plt.ylabel(&#34;Probability&#34;, fontsize = 15)
-    if title == None:
-        plt.title(&#34;Degree distribution&#34;, fontsize = 20)
-    else:
-        plt.title(title, fontsize = 20)
-    plt.tight_layout()
-    plt.savefig(Path(path + &#34;/&#34; + title + &#34;.png&#34;))
-    plt.savefig(Path(path + &#34;/&#34; +  title + &#34;.pdf&#34;))
-
-# Print degree distribution
-def print_degree_summary(G, path):
-    &#34;&#34;&#34;
-    Print degree probability distribution dummary of the network.
-    
-    Parameters
-    ----------
-    G: ig.Graph()
-        The contact network
-
-    Return
-    ------
-    None
-
-    &#34;&#34;&#34;
-    
-    plot_degree_dist(G, title = &#34;Degree distribution&#34;, path = path)
-    plot_degree_dist(G, node_sociability = &#34;low&#34;, title = &#34;Degree distribution low sociability&#34;, path = path)
-    plot_degree_dist(G, node_sociability = &#34;medium&#34;, title = &#34;Degree distribution medium sociability&#34;, path = path)
-    plot_degree_dist(G, node_sociability = &#34;high&#34;, title = &#34;Degree distribution high sociability&#34;, path = path)
-
-    plot_degree_dist(G, edge_category = &#34;family_contacts&#34;, title = &#34;Degree distribution family contacts&#34;, path = path)
-    plot_degree_dist(G, edge_category = &#34;frequent_contacts&#34;, title = &#34;Degree distribution frequent contacts&#34;, path = path)
-    plot_degree_dist(G, edge_category = &#34;occasional_contacts&#34;, title = &#34;Degree distribution occasional contacts&#34;, path = path)
-    plot_degree_dist(G, edge_category = &#34;random_contacts&#34;, title = &#34;Degree distribution random contacts&#34;, path = path)
-
-&#39;&#39;&#39;</code></pre>
+    return to_dump</code></pre>
 </details>
 </section>
 <section>
@@ -324,7 +230,7 @@ The transmission rate for the network</p></div>
     avr_deg = list()
     # compute average weighted degree on 20 steps
     for i in range (20):
-        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, &#34;Random&#34;, 0)
+        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, &#34;Random&#34;, 0, False, 0.5, 0.5)
 
         degrees = G.strength(list(range(len(G.vs))), weights = &#34;weight&#34;)
         avr_deg.append(sum(degrees) / len(degrees))
@@ -419,7 +325,7 @@ related attributes of each node to the default value</p>
         node[&#34;agent_status&#34;] = &#39;S&#39;
         node[&#34;infected&#34;] = False
         node[&#34;days_from_infection&#34;] = 0
-        node[&#34;probability_of_being_infected&#34;] = 0.0
+        node[&#34;prob_inf&#34;] = 0.0
         node[&#34;quarantine&#34;] = 0
         node[&#34;test_validity&#34;] = 0
         node[&#34;test_result&#34;] = -1

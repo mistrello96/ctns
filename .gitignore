@@ -16,3 +16,5 @@ build/
 ctns/__pycache__/
 
 dist/
+
+*.pickle
