@@ -4,13 +4,13 @@ from pathlib import Path
 from collections import deque
 import sys, random, time, pickle
 try:
-    from ctns.generator import generate_network, init_infection
+    from ctns.generator import generate_network, init_infection, compute_TR
     from ctns.steps import step
-    from ctns.utility import compute_TR, update_dump_report
+    from ctns.utility import update_dump_report
 except ImportError as e:
-    from generator import generate_network, init_infection
+    from generator import generate_network, init_infection, compute_TR
     from steps import step
-    from utility import compute_TR, update_dump_report
+    from utility import update_dump_report
 
 def run_simulation(n_of_families = 500,
     use_steps = True,

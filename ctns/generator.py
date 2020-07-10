@@ -2,9 +2,11 @@ import igraph as ig
 import random, math
 import numpy as np
 try:
-    from ctns.utility import fix_distribution_node_number
+    from ctns.utility import fix_distribution_node_number, reset_network
+    from ctns.steps import step
 except ImportError as e:
-    from utility import fix_distribution_node_number
+    from utility import fix_distribution_node_number, reset_network
+    from steps import step
 
 def generate_node_list_attribute(G, attribute_name, distribution):
     """
@@ -228,3 +230,40 @@ def init_infection(G, n_initial_infected_nodes):
         number_of_nodes = len(list(G.vs))
         for node in G.vs:
             node["prob_inf"] = n_initial_infected_nodes / number_of_nodes
+
+def compute_TR(G, R_0, infection_duration, incubation_days):
+    """
+    Compute the transmission rate of the disease in the network.
+    The factor is computed as R_0 / (average_weighted_degree * (infection_duration - incubation_days))
+    
+    Parameters
+    ----------
+    G: ig.Graph()
+        The contact network
+
+    R_0: float
+        R_0 of the disease
+
+    infection_duration: int
+        Average total duration of the disease
+
+    incubation_days: int
+        Average number of days where the patient is not infective
+
+    Return
+    ------
+    transmission_rate: float
+        The transmission rate for the network
+
+    """
+
+    avr_deg = list()
+    # compute average weighted degree on 20 steps
+    for i in range (20):
+        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, "Random", 0, False, 0.5, 0.5)
+
+        degrees = G.strength(list(range(len(G.vs))), weights = "weight")
+        avr_deg.append(sum(degrees) / len(degrees))
+    #reset network status
+    reset_network(G)
+    return R_0 /((infection_duration - incubation_days) * (sum(avr_deg) / len(avr_deg)))
