@@ -2,6 +2,10 @@ import igraph as ig
 import random
 import numpy as np
 from collections import Counter
+try:
+    from ctns.utility import retrive_to_test, perform_test, compute_sd_reduction
+except ImportError as e:
+    from utility import retrive_to_test, perform_test, compute_sd_reduction
 
 def generate_family_edges(G):
     """
@@ -295,7 +299,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
     policy_test: string
         Test strategy
-        Can be ["Random, Degree Centrality, Betweenness Centrality"]
+        Can be ["Random, Degree Centrality, Betweenness Centrality, PBI"]
     
     contact_tracing_efficiency: float
         The percentage of contacts successfully traced
@@ -343,28 +347,25 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
     to_test = list()
 
-    if policy_test == "Random" and n_new_test > 0:
-        to_test = random.sample(low_priority_test_pool, min(len(low_priority_test_pool), n_new_test))
+    if n_new_test:
+        if policy_test == "Random":
+            to_test = random.sample(low_priority_test_pool, min(len(low_priority_test_pool), n_new_test))
 
-    if policy_test == "Degree Centrality" and n_new_test > 0:
-        low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
-        degree_results = G.strength(low_priority_test_pool_index, weights = "weight")
-        zipped_lists = zip(degree_results, low_priority_test_pool)
-        sorted_pairs = sorted(zipped_lists, reverse = True)
-        tuples = zip(*sorted_pairs)
-        _, sorted_nodes = [ list(tuple) for tuple in  tuples]
-        to_test = sorted_nodes[:min(n_new_test, len(low_priority_test_pool))]
+        if policy_test == "Degree Centrality":
+            low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
+            degree_results = G.strength(low_priority_test_pool_index, weights = "weight")
+            to_test = retrive_to_test(low_priority_test_pool, degree_results, n_new_test)
 
-    if policy_test == "Betweenness Centrality" and n_new_test > 0:
-        low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
-        betweenness_results = G.betweenness(low_priority_test_pool_index, 
-                                            directed = False, weights = "weight",
-                                            cutoff = None)
-        zipped_lists = zip(betweenness_results, low_priority_test_pool)
-        sorted_pairs = sorted(zipped_lists, reverse = True)
-        tuples = zip(*sorted_pairs)
-        _, sorted_nodes = [ list(tuple) for tuple in  tuples]
-        to_test = sorted_nodes[:min(n_new_test, len(low_priority_test_pool))]
+        if policy_test == "Betweenness Centrality":
+            low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
+            betweenness_results = G.betweenness(low_priority_test_pool_index, 
+                                                directed = False, weights = "weight",
+                                                cutoff = None)
+            to_test = retrive_to_test(low_priority_test_pool, betweenness_results, n_new_test)
+
+        if policy_test == "PBI":
+            probs_infected = G.vs["prob_inf"]
+            to_test = retrive_to_test(low_priority_test_pool, probs_infected, n_new_test)
 
     for node in to_test:
         result = perform_test(node, incubation_days, use_probabilities)
@@ -521,96 +522,3 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
         agent_status_report.append(node["agent_status"])
 
     return G  
-
-def compute_sd_reduction(step_index, initial_day_restriction, restriction_duration, social_distance_strictness):
-    """
-    Calculate the decreased social distance strictness index
-    
-    Parameters
-    ----------
-        
-    step_index : int 
-        index of the step
-    
-    initial_day_restriction: int
-        Day index from when social distancing measures are applied
-
-    restriction_duration: int
-        How many days the social distancing last. Use -1 to make the restriction last till the end of the simulation
-
-    social_distance_strictness: int
-        How strict from 0 to 4 the social distancing measures are. 
-        Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
-        Note that family contacts are not included in this reduction
-
-    Return
-    ------
-    social_distance_strictness: int
-        Updated value for social_distance_strictness
-        
-    """
-    
-    default_days = restriction_duration // social_distance_strictness
-    spare_days = restriction_duration - default_days * social_distance_strictness
-
-    strictness_sequence = list()
-
-    for i in range(social_distance_strictness):
-        updated_days = default_days
-        if spare_days > 0:
-            updated_days += 1
-            spare_days -= 1
-        strictness_sequence.append(updated_days)
-
-
-    for i in range(1, len(strictness_sequence)):
-      strictness_sequence[i] += strictness_sequence[i - 1]
-
-
-    social_distance_reduction = None
-
-    for i in range(len(strictness_sequence)):
-      if step_index - initial_day_restriction < strictness_sequence[i]:
-        social_distance_reduction = i
-        break
-
-    return social_distance_strictness - social_distance_reduction
-
-def perform_test(node, incubation_days, use_probabilities):
-    """
-    Perform tampon and syerological test on the node
-    
-    Parameters
-    ----------
-        
-    node: igraph.Vertex
-        Node to test
-
-    incubation_days: int
-        Average number of days where the patient is not infective
-
-    use_probabilities: bool
-        Enables probabilities of being infected estimation
-
-    Return
-    ------
-    positive: bool
-        If the node tested is found positive
-        
-    """
-
-    if node["infected"]:
-        node["test_result"] = 1
-        node["quarantine"] = 14
-        node["test_validity"] = 14
-        if use_probabilities:
-            node["prob_inf"] = 1
-        return True
-    else:
-        node["test_result"] = 0
-        node["test_validity"] = incubation_days
-        if use_probabilities:
-            node["prob_inf"] = 0
-        return False
-
-    return None

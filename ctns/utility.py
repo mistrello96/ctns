@@ -2,11 +2,6 @@ import igraph as ig
 import random
 import numpy as np
 from collections import Counter
-#import matplotlib.pyplot as plt
-try:
-    from ctns.steps import step
-except ImportError as e:
-    from steps import step
 
 def fix_distribution_node_number(distribution, n_nodes):
     """
@@ -64,43 +59,6 @@ def reset_network(G):
         if "prob_inf" in G.vs.attributes():
             node["prob_inf"] = 0.0
 
-def compute_TR(G, R_0, infection_duration, incubation_days):
-    """
-    Compute the transmission rate of the disease in the network.
-    The factor is computed as R_0 / (average_weighted_degree * (infection_duration - incubation_days))
-    
-    Parameters
-    ----------
-    G: ig.Graph()
-        The contact network
-
-    R_0: float
-        R_0 of the disease
-
-    infection_duration: int
-        Average total duration of the disease
-
-    incubation_days: int
-        Average number of days where the patient is not infective
-
-    Return
-    ------
-    transmission_rate: float
-        The transmission rate for the network
-
-    """
-
-    avr_deg = list()
-    # compute average weighted degree on 20 steps
-    for i in range (20):
-        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, "Random", 0, False, 0.5, 0.5)
-
-        degrees = G.strength(list(range(len(G.vs))), weights = "weight")
-        avr_deg.append(sum(degrees) / len(degrees))
-    #reset network status
-    reset_network(G)
-    return R_0 /((infection_duration - incubation_days) * (sum(avr_deg) / len(avr_deg)))
-
 def update_dump_report(to_dump, net):
     """
     Update the simulation dump in case light dump is selected
@@ -143,3 +101,132 @@ def update_dump_report(to_dump, net):
     to_dump['total'].append(sum(network_report.values()))
 
     return to_dump
+
+def compute_sd_reduction(step_index, initial_day_restriction, restriction_duration, social_distance_strictness):
+    """
+    Calculate the decreased social distance strictness index
+    
+    Parameters
+    ----------
+        
+    step_index : int 
+        index of the step
+    
+    initial_day_restriction: int
+        Day index from when social distancing measures are applied
+
+    restriction_duration: int
+        How many days the social distancing last. Use -1 to make the restriction last till the end of the simulation
+
+    social_distance_strictness: int
+        How strict from 0 to 4 the social distancing measures are. 
+        Represent the portion of contact that are dropped in the network (0, 25%, 50%, 75%, 100%)
+        Note that family contacts are not included in this reduction
+
+    Return
+    ------
+    social_distance_strictness: int
+        Updated value for social_distance_strictness
+        
+    """
+    
+    default_days = restriction_duration // social_distance_strictness
+    spare_days = restriction_duration - default_days * social_distance_strictness
+
+    strictness_sequence = list()
+
+    for i in range(social_distance_strictness):
+        updated_days = default_days
+        if spare_days > 0:
+            updated_days += 1
+            spare_days -= 1
+        strictness_sequence.append(updated_days)
+
+
+    for i in range(1, len(strictness_sequence)):
+      strictness_sequence[i] += strictness_sequence[i - 1]
+
+
+    social_distance_reduction = None
+
+    for i in range(len(strictness_sequence)):
+      if step_index - initial_day_restriction < strictness_sequence[i]:
+        social_distance_reduction = i
+        break
+
+    return social_distance_strictness - social_distance_reduction
+
+def perform_test(node, incubation_days, use_probabilities):
+    """
+    Perform tampon and syerological test on the node
+    
+    Parameters
+    ----------
+        
+    node: igraph.Vertex
+        Node to test
+
+    incubation_days: int
+        Average number of days where the patient is not infective
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
+
+    Return
+    ------
+    positive: bool
+        If the node tested is found positive
+        
+    """
+
+    if node["infected"]:
+        node["test_result"] = 1
+        node["quarantine"] = 14
+        node["test_validity"] = 14
+        if use_probabilities:
+            node["prob_inf"] = 1
+        return True
+    else:
+        node["test_result"] = 0
+        node["test_validity"] = incubation_days
+        if use_probabilities:
+            node["prob_inf"] = 0
+        return False
+
+    return None
+
+def retrive_to_test(nodes, values, n_new_test, reverse = True):
+    """
+    Test some nodes of the network and put the in quarantine if needed
+    
+    Parameters
+    ----------
+
+    nodes: list
+        List of all nodes that needs a test
+
+    values: list
+        List of values used to sort the previous list
+
+    n_new_test: int
+        Number of new avaiable tests
+
+    reverse: bool
+        Sort using descending order
+
+    Return
+    ------
+    to_test: list
+        List of nodes that will be tested
+
+    """
+
+    to_test = list()
+
+    zipped_lists = zip(values, nodes)
+    sorted_pairs = sorted(zipped_lists, reverse = reverse)
+    tuples = zip(*sorted_pairs)
+    _, sorted_nodes = [ list(tuple) for tuple in  tuples]
+    to_test = sorted_nodes[:min(n_new_test, len(nodes))]
+
+    return to_test

@@ -4,13 +4,13 @@ from pathlib import Path
 from collections import deque
 import sys, random, time, pickle
 try:
-    from ctns.generator import generate_network, init_infection
+    from ctns.generator import generate_network, init_infection, compute_TR
     from ctns.steps import step
-    from ctns.utility import compute_TR, update_dump_report
+    from ctns.utility import update_dump_report
 except ImportError as e:
-    from generator import generate_network, init_infection
+    from generator import generate_network, init_infection, compute_TR
     from steps import step
-    from utility import compute_TR, update_dump_report
+    from utility import update_dump_report
 
 def run_simulation(n_of_families = 500,
     use_steps = True,
@@ -78,7 +78,7 @@ def run_simulation(n_of_families = 500,
         Number of avaiable tests
 
     policy_test: string
-        Strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality
+        Strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality or PBI
 
     contact_tracing_efficiency: float
         The percentage of contacts successfully traced back in the past 14 days
@@ -152,7 +152,7 @@ def run_simulation(n_of_families = 500,
     if n_test < 0:
         print("Invalid number of test per day")
         sys.exit()
-    if not (policy_test == "Random" or policy_test == "Degree Centrality" or policy_test == "Betweenness Centrality"):
+    if not (policy_test == "Random" or policy_test == "Degree Centrality" or policy_test == "Betweenness Centrality" or "PBI"):
         print("Invalid test strategy")
         sys.exit()
     if contact_tracing_efficiency < 0 or contact_tracing_efficiency > 1:
@@ -179,6 +179,9 @@ def run_simulation(n_of_families = 500,
     if dump_type != "full" and dump_type != "light":
         print("Invalid dump type")
         sys.exit()
+    if not use_probabilities and policy_test == "PBI":
+        print("Cannot use PBI if probability of being infected is not enabled")
+        sys.exit()
 
     # making parameters consistent
     if restriction_duration == 0 or social_distance_strictness == 0:
@@ -199,7 +202,6 @@ def run_simulation(n_of_families = 500,
     if not use_probabilities:
         gamma = 0
         lambdaa = 0
-
 
     config = locals()
     a = time.perf_counter()
@@ -306,7 +308,7 @@ def main():
         n_initial_infected_nodes = int(input("Please insert the number of initial infected individuals: "))
         R_0 = float(input("Please insert the value of R0: "))
         n_test = int(input("Please insert the number of available test per day: "))
-        policy_test = input("Please insert strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality: ")
+        policy_test = input("Please insert strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality or PBI (probability of being infected): ")
         contact_tracing_efficiency = float(input("Please insert a value between 0 and 1 to set the contact tracing efficiency: "))
         contact_tracing_duration = int(input("Please insert for how many days the contact tracing is computed: "))
         use_random_seed = int(input("Press 1 use a fixed a random seed or 0 to pick a random seed: "))
