@@ -112,7 +112,7 @@ def generate_node_family_attribute(G, distribution):
                 if source != target:
                     G.vs[source][&#34;family_contacts&#34;].append((source, target))  
 
-def generate_network(n_of_families):
+def generate_network(n_of_families, use_probabilities):
     &#34;&#34;&#34;
     Generte contact network nodes
     
@@ -120,6 +120,9 @@ def generate_network(n_of_families):
     ----------
     n_of_families: int
         Number of families in the network
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
         
     Return
     ------
@@ -206,12 +209,13 @@ def generate_network(n_of_families):
         node[&#34;agent_status&#34;] = &#39;S&#39;
         node[&#34;infected&#34;] = False
         node[&#34;days_from_infection&#34;] = 0
-        node[&#34;prob_inf&#34;] = 0.0
         node[&#34;quarantine&#34;] = 0
         node[&#34;test_validity&#34;] = 0
         node[&#34;test_result&#34;] = -1
         node[&#34;symptoms&#34;] = list()
         node[&#34;needs_IC&#34;] = False
+        if use_probabilities:
+            node[&#34;prob_inf&#34;] = 0.0
 
     # GENERATE NODE LIST ATTRIBUTES
     # generate families contact attribute in nodes
@@ -223,7 +227,7 @@ def generate_network(n_of_families):
 
     return G  
 
-def init_infection(G, n_initial_infected_nodes):
+def init_infection(G, n_initial_infected_nodes, use_probabilities):
     &#34;&#34;&#34;
     Make random nodes infected in the network
     
@@ -234,6 +238,9 @@ def init_infection(G, n_initial_infected_nodes):
 
     n_initial_infected_nodes: int
         Number of infected nodes to put on the network
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
 
     Return
     ------
@@ -246,9 +253,10 @@ def init_infection(G, n_initial_infected_nodes):
         node[&#34;infected&#34;] = True
         node[&#34;days_from_infection&#34;] = 1
 
-    number_of_nodes = len(list(G.vs))
-    for node in G.vs:
-        node[&#34;prob_inf&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
+    if use_probabilities:
+        number_of_nodes = len(list(G.vs))
+        for node in G.vs:
+            node[&#34;prob_inf&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
 </details>
 </section>
 <section>
@@ -259,7 +267,7 @@ def init_infection(G, n_initial_infected_nodes):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="ctns.generator.generate_network"><code class="name flex">
-<span>def <span class="ident">generate_network</span></span>(<span>n_of_families)</span>
+<span>def <span class="ident">generate_network</span></span>(<span>n_of_families, use_probabilities)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Generte contact network nodes</p>
@@ -267,6 +275,8 @@ def init_infection(G, n_initial_infected_nodes):
 <dl>
 <dt><strong><code>n_of_families</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of families in the network</dd>
+<dt><strong><code>use_probabilities</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Enables probabilities of being infected estimation</dd>
 </dl>
 <h2 id="return">Return</h2>
 <p>G: ig.Graph()
@@ -275,7 +285,7 @@ The contact network</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def generate_network(n_of_families):
+<pre><code class="python">def generate_network(n_of_families, use_probabilities):
     &#34;&#34;&#34;
     Generte contact network nodes
     
@@ -283,6 +293,9 @@ The contact network</p></div>
     ----------
     n_of_families: int
         Number of families in the network
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
         
     Return
     ------
@@ -369,12 +382,13 @@ The contact network</p></div>
         node[&#34;agent_status&#34;] = &#39;S&#39;
         node[&#34;infected&#34;] = False
         node[&#34;days_from_infection&#34;] = 0
-        node[&#34;prob_inf&#34;] = 0.0
         node[&#34;quarantine&#34;] = 0
         node[&#34;test_validity&#34;] = 0
         node[&#34;test_result&#34;] = -1
         node[&#34;symptoms&#34;] = list()
         node[&#34;needs_IC&#34;] = False
+        if use_probabilities:
+            node[&#34;prob_inf&#34;] = 0.0
 
     # GENERATE NODE LIST ATTRIBUTES
     # generate families contact attribute in nodes
@@ -511,7 +525,7 @@ This list is used to draw the new edges for the node in the step function</p>
 </details>
 </dd>
 <dt id="ctns.generator.init_infection"><code class="name flex">
-<span>def <span class="ident">init_infection</span></span>(<span>G, n_initial_infected_nodes)</span>
+<span>def <span class="ident">init_infection</span></span>(<span>G, n_initial_infected_nodes, use_probabilities)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Make random nodes infected in the network</p>
@@ -521,6 +535,8 @@ This list is used to draw the new edges for the node in the step function</p>
 <dd>The contact network</dd>
 <dt><strong><code>n_initial_infected_nodes</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of infected nodes to put on the network</dd>
+<dt><strong><code>use_probabilities</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Enables probabilities of being infected estimation</dd>
 </dl>
 <h2 id="return">Return</h2>
 <p>None</p></div>
@@ -528,7 +544,7 @@ This list is used to draw the new edges for the node in the step function</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def init_infection(G, n_initial_infected_nodes):
+<pre><code class="python">def init_infection(G, n_initial_infected_nodes, use_probabilities):
     &#34;&#34;&#34;
     Make random nodes infected in the network
     
@@ -539,6 +555,9 @@ This list is used to draw the new edges for the node in the step function</p>
 
     n_initial_infected_nodes: int
         Number of infected nodes to put on the network
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
 
     Return
     ------
@@ -551,9 +570,10 @@ This list is used to draw the new edges for the node in the step function</p>
         node[&#34;infected&#34;] = True
         node[&#34;days_from_infection&#34;] = 1
 
-    number_of_nodes = len(list(G.vs))
-    for node in G.vs:
-        node[&#34;prob_inf&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
+    if use_probabilities:
+        number_of_nodes = len(list(G.vs))
+        for node in G.vs:
+            node[&#34;prob_inf&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
 </details>
 </dd>
 </dl>
