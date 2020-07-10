@@ -201,7 +201,7 @@ def generate_network(n_of_families, use_probabilities):
 
     return G  
 
-def init_infection(G, n_initial_infected_nodes, use_probabilities):
+def init_infection(G, n_initial_infected_nodes):
     """
     Make random nodes infected in the network
     
@@ -212,9 +212,6 @@ def init_infection(G, n_initial_infected_nodes, use_probabilities):
 
     n_initial_infected_nodes: int
         Number of infected nodes to put on the network
-
-    use_probabilities: bool
-        Enables probabilities of being infected estimation
 
     Return
     ------
@@ -227,7 +224,7 @@ def init_infection(G, n_initial_infected_nodes, use_probabilities):
         node["infected"] = True
         node["days_from_infection"] = 1
 
-    if use_probabilities:
+    if "prob_inf" in G.vs.attributes():
         number_of_nodes = len(list(G.vs))
         for node in G.vs:
             node["prob_inf"] = n_initial_infected_nodes / number_of_nodes

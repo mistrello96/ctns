@@ -57,11 +57,12 @@ def reset_network(G):
         node["agent_status"] = 'S'
         node["infected"] = False
         node["days_from_infection"] = 0
-        node["prob_inf"] = 0.0
         node["quarantine"] = 0
         node["test_validity"] = 0
         node["test_result"] = -1
-        node["symptoms"] = list()  
+        node["symptoms"] = list()
+        if "prob_inf" in G.vs.attributes():
+            node["prob_inf"] = 0.0
 
 def compute_TR(G, R_0, infection_duration, incubation_days):
     """
