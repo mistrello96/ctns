@@ -232,7 +232,7 @@ def run_simulation(n_of_families = 500,
     # init network
     G = generate_network(n_of_families, use_probabilities)
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
-    init_infection(G, n_initial_infected_nodes, use_probabilities)
+    init_infection(G, n_initial_infected_nodes)
 
     nets = deque(maxlen = contact_tracing_duration)
     if dump_type == &#34;full&#34;:
@@ -695,7 +695,7 @@ The dumped file will have the following structure:
     # init network
     G = generate_network(n_of_families, use_probabilities)
     transmission_rate = compute_TR(G, R_0, infection_duration, incubation_days)
-    init_infection(G, n_initial_infected_nodes, use_probabilities)
+    init_infection(G, n_initial_infected_nodes)
 
     nets = deque(maxlen = contact_tracing_duration)
     if dump_type == &#34;full&#34;:

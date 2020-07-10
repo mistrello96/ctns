@@ -227,7 +227,7 @@ def generate_network(n_of_families, use_probabilities):
 
     return G  
 
-def init_infection(G, n_initial_infected_nodes, use_probabilities):
+def init_infection(G, n_initial_infected_nodes):
     &#34;&#34;&#34;
     Make random nodes infected in the network
     
@@ -238,9 +238,6 @@ def init_infection(G, n_initial_infected_nodes, use_probabilities):
 
     n_initial_infected_nodes: int
         Number of infected nodes to put on the network
-
-    use_probabilities: bool
-        Enables probabilities of being infected estimation
 
     Return
     ------
@@ -253,7 +250,7 @@ def init_infection(G, n_initial_infected_nodes, use_probabilities):
         node[&#34;infected&#34;] = True
         node[&#34;days_from_infection&#34;] = 1
 
-    if use_probabilities:
+    if &#34;prob_inf&#34; in G.vs.attributes():
         number_of_nodes = len(list(G.vs))
         for node in G.vs:
             node[&#34;prob_inf&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
@@ -525,7 +522,7 @@ This list is used to draw the new edges for the node in the step function</p>
 </details>
 </dd>
 <dt id="ctns.generator.init_infection"><code class="name flex">
-<span>def <span class="ident">init_infection</span></span>(<span>G, n_initial_infected_nodes, use_probabilities)</span>
+<span>def <span class="ident">init_infection</span></span>(<span>G, n_initial_infected_nodes)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Make random nodes infected in the network</p>
@@ -535,8 +532,6 @@ This list is used to draw the new edges for the node in the step function</p>
 <dd>The contact network</dd>
 <dt><strong><code>n_initial_infected_nodes</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of infected nodes to put on the network</dd>
-<dt><strong><code>use_probabilities</code></strong> :&ensp;<code>bool</code></dt>
-<dd>Enables probabilities of being infected estimation</dd>
 </dl>
 <h2 id="return">Return</h2>
 <p>None</p></div>
@@ -544,7 +539,7 @@ This list is used to draw the new edges for the node in the step function</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def init_infection(G, n_initial_infected_nodes, use_probabilities):
+<pre><code class="python">def init_infection(G, n_initial_infected_nodes):
     &#34;&#34;&#34;
     Make random nodes infected in the network
     
@@ -555,9 +550,6 @@ This list is used to draw the new edges for the node in the step function</p>
 
     n_initial_infected_nodes: int
         Number of infected nodes to put on the network
-
-    use_probabilities: bool
-        Enables probabilities of being infected estimation
 
     Return
     ------
@@ -570,7 +562,7 @@ This list is used to draw the new edges for the node in the step function</p>
         node[&#34;infected&#34;] = True
         node[&#34;days_from_infection&#34;] = 1
 
-    if use_probabilities:
+    if &#34;prob_inf&#34; in G.vs.attributes():
         number_of_nodes = len(list(G.vs))
         for node in G.vs:
             node[&#34;prob_inf&#34;] = n_initial_infected_nodes / number_of_nodes</code></pre>
