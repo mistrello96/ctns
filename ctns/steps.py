@@ -217,7 +217,8 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, use_p
                 if node["agent_status"] == "D":
                     node["quarantine"] = 0
                     node["test_result"] = - 1
-                    node["prob_inf"] = 0
+                    if use_probabilities:
+                        node["prob_inf"] = 0
                 
             # if it is still infective, spread the infection with his contacts
             if node["agent_status"] == "I":
@@ -336,17 +337,9 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
     high_priority_test_pool = [G.vs[i] for i in high_priority_test_pool]
     low_priority_test_pool = [G.vs[i] for i in low_priority_test_pool]
     for node in high_priority_test_pool:
-        if node["infected"]:
-            node["test_result"] = 1
-            node["quarantine"] = 14
-            node["test_validity"] = 14
-            node["prob_inf"] = 1
+        result = perform_test(node, incubation_days, use_probabilities)
+        if result:
             found_positive.add(node.index)
-        else:
-            node["test_result"] = 0
-            node["prob_inf"] = 0
-            node["test_validity"] = incubation_days
-
 
     to_test = list()
 
@@ -374,17 +367,10 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         to_test = sorted_nodes[:min(n_new_test, len(low_priority_test_pool))]
 
     for node in to_test:
-        if node["infected"]:
-            node["test_result"] = 1
-            node["quarantine"] = 14
-            node["test_validity"] = 14
-            node["prob_inf"] = 1
+        result = perform_test(node, incubation_days, use_probabilities)
+        if result:
             found_positive.add(node.index)
-        else:
-            node["test_result"] = 0
-            node["prob_inf"] = 0
-            node["test_validity"] = incubation_days
-    
+            
     # to_quarantine will contain family contacts (quarantine 100%), 
     # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficiency
 
@@ -589,3 +575,42 @@ def compute_sd_reduction(step_index, initial_day_restriction, restriction_durati
         break
 
     return social_distance_strictness - social_distance_reduction
+
+def perform_test(node, incubation_days, use_probabilities):
+    """
+    Perform tampon and syerological test on the node
+    
+    Parameters
+    ----------
+        
+    node: igraph.Vertex
+        Node to test
+
+    incubation_days: int
+        Average number of days where the patient is not infective
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
+
+    Return
+    ------
+    positive: bool
+        If the node tested is found positive
+        
+    """
+
+    if node["infected"]:
+        node["test_result"] = 1
+        node["quarantine"] = 14
+        node["test_validity"] = 14
+        if use_probabilities:
+            node["prob_inf"] = 1
+        return True
+    else:
+        node["test_result"] = 0
+        node["test_validity"] = incubation_days
+        if use_probabilities:
+            node["prob_inf"] = 0
+        return False
+
+    return None
