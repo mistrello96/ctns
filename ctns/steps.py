@@ -367,7 +367,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
             to_test = retrive_to_test(low_priority_test_pool, betweenness_results, n_new_test)
 
         if policy_test == "PBI":
-            probs_infected = G.vs["prob_inf"]
+            probs_infected = [i["prob_inf"] for i in low_priority_test_pool]
             to_test = retrive_to_test(low_priority_test_pool, probs_infected, n_new_test)
 
     for node in to_test:
@@ -403,7 +403,6 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         else:
             possibly_tracked = list(possibly_tracked)
         tracked = list(tracked)
-
         if use_probabilities:
             # update prob of being infected of current contact 
             for node in tracked + possibly_tracked:
@@ -412,7 +411,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
                     if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
                         current_contact_weight = G[node, contact]
                         contact_node["prob_inf"] = contact_node["prob_inf"] \
-                                                                        + lambdaa * np.e**(-(1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
+                                                    + lambdaa * np.e**(-(1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
+
             
             # update prob of being infected of past tracked contact 
                 for net_index in range(len(nets)):
