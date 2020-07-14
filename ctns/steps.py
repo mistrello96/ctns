@@ -432,7 +432,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         else:
             possibly_quarantine = list(possibly_tracked)
 
-        to_quarantine = [G.vs[i] for i in tracked] + possibly_quarantine
+        to_quarantine = [G.vs[i] for i in tracked + possibly_quarantine]
         
         # put them in quarantine
         if to_quarantine != list() and to_quarantine != None:
