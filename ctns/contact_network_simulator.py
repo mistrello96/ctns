@@ -27,6 +27,7 @@ def run_simulation(n_of_families = 500,
     policy_test = "Random",
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
+    quarantine_efficiency = 0.4,
     use_random_seed = True,
     seed = 0,
     use_probabilities = False,
@@ -81,7 +82,13 @@ def run_simulation(n_of_families = 500,
         Strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality or PBI
 
     contact_tracing_efficiency: float
-        The percentage of contacts successfully traced back in the past 14 days
+        The percentage of contacts successfully traced back in the past contact_tracing_duration days
+
+    contact_tracing_duration: int
+        How many days the contacts of a node are tracked back
+
+    quarantine_efficiency: float
+        The percentage of contacts put under quarantine
 
     use_random_seed: bool
         Id use or not a fixed random seed
@@ -158,6 +165,9 @@ def run_simulation(n_of_families = 500,
     if contact_tracing_efficiency < 0 or contact_tracing_efficiency > 1:
         print("Invalid contact tracing efficiency")
         sys.exit()
+    if quarantine_efficiency < 0 or quarantine_efficiency > 1:
+        print("Invalid quarantine efficiency")
+        sys.exit()
     if contact_tracing_duration < 0:
         print("Invalid contatc tracing duration")
         sys.exit()
@@ -233,7 +243,7 @@ def run_simulation(n_of_families = 500,
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
-                             use_probabilities, gamma, lambdaa)
+                             quarantine_efficiency, use_probabilities, gamma, lambdaa)
             nets.append(net.copy())
             if dump_type == "full":
                 to_dump["nets"].append(net.copy())
@@ -247,7 +257,7 @@ def run_simulation(n_of_families = 500,
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
-                             use_probabilities, gamma, lambdaa)
+                             quarantine_efficiency, use_probabilities, gamma, lambdaa)
             nets.append(net.copy())
             sim_index += 1
 
@@ -312,6 +322,7 @@ def main():
         policy_test = input("Please insert strategy with which test are made. Can be Random, Degree Centrality, Betweenness Centrality or PBI (probability of being infected): ")
         contact_tracing_efficiency = float(input("Please insert a value between 0 and 1 to set the contact tracing efficiency: "))
         contact_tracing_duration = int(input("Please insert for how many days the contact tracing is computed: "))
+        quarantine_efficiency = float(input("Please insert a value between 0 and 1 to set the quarantine efficiency: "))
         use_random_seed = int(input("Press 1 use a fixed a random seed or 0 to pick a random seed: "))
         if use_random_seed:
             seed = int(input("Please insert the random seed: "))
@@ -325,7 +336,7 @@ def main():
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
-            use_random_seed, seed, use_probabilities, gamma, lambdaa, dump_type, path)
+            quarantine_efficiency, use_random_seed, seed, use_probabilities, gamma, lambdaa, dump_type, path)
     else:
         dump_type = input("Please insert the dump type. Can be either full of light: ")
         path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")

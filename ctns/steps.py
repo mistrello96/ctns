@@ -279,7 +279,7 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, use_p
                 index = node.index
                 node["prob_inf"] = 1 - (1 - old_prob[index] * np.tanh(old_prob[index] + 0.5)) * nodes_contact_probs[index]
    
-def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency, use_probabilities, lambdaa):
+def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency, quarantine_efficiency, use_probabilities, lambdaa):
     """
     Test some nodes of the network and put the in quarantine if needed
     
@@ -303,6 +303,9 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
     
     contact_tracing_efficiency: float
         The percentage of contacts successfully traced
+
+    quarantine_efficiency: float
+        The percentage of contacts put under quarantine
 
     use_probabilities: bool
         Enables probabilities of being infected estimation
@@ -372,38 +375,38 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         if result:
             found_positive.add(node.index)
             
-    # to_quarantine will contain family contacts (quarantine 100%), 
-    # possibly_quarantine will contain other contacts, quarantine influenced by contact tracing efficiency
+    # tracked will contain family contacts (quarantine 100%), 
+    # possibly_tracked will contain other contacts, quarantine influenced by contact tracing efficiency
 
     if len(found_positive) > 0 and len(nets) > 0:
-        to_quarantine = set()
-        possibly_quarantine = set()
+        tracked = set()
+        possibly_tracked = set()
         # trace contacts
         for net in nets:
             for edge in net.es:
                 if edge["category"] == "family_contacts" \
                 and (edge.source in found_positive or edge.target in found_positive):
                     if edge.source in found_positive:
-                        to_quarantine.add(G.vs[edge.target].index)
+                        tracked.add(G.vs[edge.target].index)
                     else:
-                        to_quarantine.add(G.vs[edge.source].index)
+                        tracked.add(G.vs[edge.source].index)
                 else:
                     if edge.source in found_positive:
-                        possibly_quarantine.add(G.vs[edge.target].index)
+                        possibly_tracked.add(G.vs[edge.target].index)
                     if edge.target in found_positive:
-                        possibly_quarantine.add(G.vs[edge.source].index)
+                        possibly_tracked.add(G.vs[edge.source].index)
         
         # set diff to remove double contacts
-        possibly_quarantine = possibly_quarantine - to_quarantine
-        if len(possibly_quarantine) > int(len(possibly_quarantine) * contact_tracing_efficiency):
-            possibly_quarantine = random.sample(possibly_quarantine, int(len(possibly_quarantine) * contact_tracing_efficiency))
+        possibly_tracked = possibly_tracked - tracked
+        if len(possibly_tracked) > int(len(possibly_tracked) * contact_tracing_efficiency):
+            possibly_tracked = random.sample(possibly_tracked, int(len(possibly_tracked) * contact_tracing_efficiency))
         else:
-            possibly_quarantine = list(possibly_quarantine)
-        to_quarantine = list(to_quarantine) + possibly_quarantine
+            possibly_tracked = list(possibly_tracked)
+        tracked = list(tracked)
 
         if use_probabilities:
             # update prob of being infected of current contact 
-            for node in to_quarantine:
+            for node in tracked + possibly_tracked:
                 for contact in G.neighborhood(node)[1:]:
                     contact_node = G.vs[contact]
                     if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
@@ -417,13 +420,20 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
                     for contact in net.neighborhood(node)[1:]:
                         contact_node = G.vs[contact]
                         if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
-                            if contact in to_quarantine:
+                            if contact in tracked + possibly_tracked:
                                 current_contact_weight = net[node, contact]
                                 contact_node["prob_inf"] = contact_node["prob_inf"] \
                                                             + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
 
-        to_quarantine = [G.vs[i] for i in to_quarantine]
+        
+        possibly_quarantine = list()
+        if len(possibly_tracked) > int(len(possibly_tracked) * quarantine_efficiency):
+            possibly_quarantine = random.sample(possibly_tracked, int(len(possibly_tracked) * quarantine_efficiency))
+        else:
+            possibly_quarantine = list(possibly_tracked)
 
+        to_quarantine = [G.vs[i] for i in tracked] + possibly_quarantine
+        
         # put them in quarantine
         if to_quarantine != list() and to_quarantine != None:
             for node in to_quarantine:
@@ -432,7 +442,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 def step(G, step_index, incubation_days, infection_duration, transmission_rate,
          initial_day_restriction, restriction_duration, social_distance_strictness,
          restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
-         use_probabilities, gamma, lambdaa):
+         quarantine_efficiency, use_probabilities, gamma, lambdaa):
     """
     Advance the simulation of one step
     
@@ -479,6 +489,9 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     contact_tracing_efficiency: float
         The percentage of contacts successfully traced
 
+    quarantine_efficiency: float
+        The percentage of contacts put under quarantine
+
     use_probabilities: bool
         Enables probabilities of being infected estimation
 
@@ -515,7 +528,7 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     step_spread(G, incubation_days, infection_duration, transmission_rate, use_probabilities, gamma)
           
     # make some test on nodes
-    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency, use_probabilities, lambdaa)
+    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency, quarantine_efficiency, use_probabilities, lambdaa)
 
     agent_status_report = list()
     for node in G.vs:
