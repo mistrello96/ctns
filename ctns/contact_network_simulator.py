@@ -1,7 +1,7 @@
 import igraph as ig
 import numpy as np
 from pathlib import Path
-from collections import deque
+from collections import deque, Counter
 import sys, random, time, pickle
 try:
     from ctns.generator import generate_network, init_infection, compute_TR
@@ -252,12 +252,13 @@ def run_simulation(n_of_families = 500,
             sim_index += 1
 
             if dump_type == "full":
-                to_dump.append(net.copy())
+                to_dump["nets"].append(net.copy())
             if dump_type == "light":
                 to_dump = update_dump_report(to_dump, net)
             
-            infected = to_dump["I"][-1]
-            exposed = to_dump["E"][-1]
+            network_report = Counter(net.vs["agent_status"])
+            infected = network_report["I"]
+            exposed = network_report["E"]
             if infected + exposed == 0:
                 break
 
