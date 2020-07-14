@@ -26,14 +26,12 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import igraph as ig
-import random
+<pre><code class="python">import random
 import numpy as np
-from collections import Counter
 try:
-    from ctns.utility import retrive_to_test, perform_test, compute_sd_reduction
+    from ctns.utility import retrive_to_test_quarantine, perform_test, compute_sd_reduction
 except ImportError as e:
-    from utility import retrive_to_test, perform_test, compute_sd_reduction
+    from utility import retrive_to_test_quarantine, perform_test, compute_sd_reduction
 
 def generate_family_edges(G):
     &#34;&#34;&#34;
@@ -232,6 +230,7 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, use_p
     None
     
     &#34;&#34;&#34;
+
     if use_probabilities:
         old_prob =  G.vs[&#34;prob_inf&#34;]
 
@@ -385,18 +384,18 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         if policy_test == &#34;Degree Centrality&#34;:
             low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
             degree_results = G.strength(low_priority_test_pool_index, weights = &#34;weight&#34;)
-            to_test = retrive_to_test(low_priority_test_pool, degree_results, n_new_test)
+            to_test = retrive_to_test_quarantine(low_priority_test_pool, degree_results, n_new_test)
 
         if policy_test == &#34;Betweenness Centrality&#34;:
             low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
             betweenness_results = G.betweenness(low_priority_test_pool_index, 
                                                 directed = False, weights = &#34;weight&#34;,
                                                 cutoff = None)
-            to_test = retrive_to_test(low_priority_test_pool, betweenness_results, n_new_test)
+            to_test = retrive_to_test_quarantine(low_priority_test_pool, betweenness_results, n_new_test)
 
         if policy_test == &#34;PBI&#34;:
             probs_infected = [i[&#34;prob_inf&#34;] for i in low_priority_test_pool]
-            to_test = retrive_to_test(low_priority_test_pool, probs_infected, n_new_test)
+            to_test = retrive_to_test_quarantine(low_priority_test_pool, probs_infected, n_new_test)
 
     for node in to_test:
         result = perform_test(node, incubation_days, use_probabilities)
@@ -455,10 +454,23 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
         
         possibly_quarantine = list()
-        if len(possibly_tracked) &gt; int(len(possibly_tracked) * quarantine_efficiency):
-            possibly_quarantine = random.sample(possibly_tracked, int(len(possibly_tracked) * quarantine_efficiency))
-        else:
+
+        if quarantine_efficiency == 1:
             possibly_quarantine = list(possibly_tracked)
+        elif quarantine_efficiency == 0 or possibly_tracked == list():
+            possibly_quarantine = list()
+        else:
+            if policy_test == &#34;Random&#34;:
+                possibly_quarantine = random.sample(possibly_tracked, int(len(possibly_tracked) * quarantine_efficiency))
+            if policy_test == &#34;Degree Centrality&#34;:
+                values = G.strength(possibly_tracked, weights = &#34;weight&#34;)
+                possibly_quarantine = retrive_to_test_quarantine(possibly_tracked, values, int(len(possibly_tracked) * quarantine_efficiency))
+            if policy_test == &#34;Betweenness Centrality&#34;:
+                values = G.betweenness(possibly_tracked, directed = False, weights = &#34;weight&#34;, cutoff = None)
+                possibly_quarantine = retrive_to_test_quarantine(possibly_tracked, values, int(len(possibly_tracked) * quarantine_efficiency))
+            if policy_test == &#34;PBI&#34;:
+                values = [G.vs[x][&#34;prob_inf&#34;] for x in possibly_tracked]
+                possibly_quarantine = retrive_to_test_quarantine(possibly_tracked, values, int(len(possibly_tracked) * quarantine_efficiency))
 
         to_quarantine = [G.vs[i] for i in tracked + possibly_quarantine]
         
@@ -1023,6 +1035,7 @@ The contact network</p></div>
     None
     
     &#34;&#34;&#34;
+
     if use_probabilities:
         old_prob =  G.vs[&#34;prob_inf&#34;]
 
@@ -1210,18 +1223,18 @@ Can be ["Random, Degree Centrality, Betweenness Centrality, PBI"]</dd>
         if policy_test == &#34;Degree Centrality&#34;:
             low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
             degree_results = G.strength(low_priority_test_pool_index, weights = &#34;weight&#34;)
-            to_test = retrive_to_test(low_priority_test_pool, degree_results, n_new_test)
+            to_test = retrive_to_test_quarantine(low_priority_test_pool, degree_results, n_new_test)
 
         if policy_test == &#34;Betweenness Centrality&#34;:
             low_priority_test_pool_index = [x.index for x in low_priority_test_pool]
             betweenness_results = G.betweenness(low_priority_test_pool_index, 
                                                 directed = False, weights = &#34;weight&#34;,
                                                 cutoff = None)
-            to_test = retrive_to_test(low_priority_test_pool, betweenness_results, n_new_test)
+            to_test = retrive_to_test_quarantine(low_priority_test_pool, betweenness_results, n_new_test)
 
         if policy_test == &#34;PBI&#34;:
             probs_infected = [i[&#34;prob_inf&#34;] for i in low_priority_test_pool]
-            to_test = retrive_to_test(low_priority_test_pool, probs_infected, n_new_test)
+            to_test = retrive_to_test_quarantine(low_priority_test_pool, probs_infected, n_new_test)
 
     for node in to_test:
         result = perform_test(node, incubation_days, use_probabilities)
@@ -1280,10 +1293,23 @@ Can be ["Random, Degree Centrality, Betweenness Centrality, PBI"]</dd>
 
         
         possibly_quarantine = list()
-        if len(possibly_tracked) &gt; int(len(possibly_tracked) * quarantine_efficiency):
-            possibly_quarantine = random.sample(possibly_tracked, int(len(possibly_tracked) * quarantine_efficiency))
-        else:
+
+        if quarantine_efficiency == 1:
             possibly_quarantine = list(possibly_tracked)
+        elif quarantine_efficiency == 0 or possibly_tracked == list():
+            possibly_quarantine = list()
+        else:
+            if policy_test == &#34;Random&#34;:
+                possibly_quarantine = random.sample(possibly_tracked, int(len(possibly_tracked) * quarantine_efficiency))
+            if policy_test == &#34;Degree Centrality&#34;:
+                values = G.strength(possibly_tracked, weights = &#34;weight&#34;)
+                possibly_quarantine = retrive_to_test_quarantine(possibly_tracked, values, int(len(possibly_tracked) * quarantine_efficiency))
+            if policy_test == &#34;Betweenness Centrality&#34;:
+                values = G.betweenness(possibly_tracked, directed = False, weights = &#34;weight&#34;, cutoff = None)
+                possibly_quarantine = retrive_to_test_quarantine(possibly_tracked, values, int(len(possibly_tracked) * quarantine_efficiency))
+            if policy_test == &#34;PBI&#34;:
+                values = [G.vs[x][&#34;prob_inf&#34;] for x in possibly_tracked]
+                possibly_quarantine = retrive_to_test_quarantine(possibly_tracked, values, int(len(possibly_tracked) * quarantine_efficiency))
 
         to_quarantine = [G.vs[i] for i in tracked + possibly_quarantine]
         

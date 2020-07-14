@@ -26,8 +26,7 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import igraph as ig
-import numpy as np
+<pre><code class="python">import numpy as np
 from pathlib import Path
 from collections import deque, Counter
 import sys, random, time, pickle
@@ -52,12 +51,12 @@ def run_simulation(n_of_families = 2000,
     n_initial_infected_nodes = 10,
     R_0 = 2.9,
     n_test = 10,
-    policy_test = &#34;Random&#34;,
+    policy_test = &#34;PBI&#34;,
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
     quarantine_efficiency = 1,
     use_random_seed = True,
-    seed = 42,
+    seed = 12345,
     use_probabilities = True,
     gamma = 0.011,
     lambdaa = 0.02,
@@ -308,27 +307,7 @@ def run_simulation(n_of_families = 2000,
 
 def main():
 
-    n_of_families = None
-    use_steps = None
-    number_of_steps = None
-    incubation_days = None
-    infection_duration = None
-    initial_day_restriction = None
-    restriction_duration = None
-    social_distance_strictness = None
-    restriction_decreasing = None
-    n_initial_infected_nodes = None
-    R_0 = None
-    n_test = None
-    policy_test = None
-    contact_tracing_efficiency = None
-    contact_tracing_duration = None
-    use_random_seed = None
-    seed = None
     dump_type = None
-    use_probabilities = None
-    gamma = None
-    lambdaa = None
     path = None
 
     user_interaction = int(input(&#34;Press 0 to load the default values or 1 to manually input the configuration for the simulation: &#34;))
@@ -392,27 +371,7 @@ if __name__ == &#34;__main__&#34;:
 </summary>
 <pre><code class="python">def main():
 
-    n_of_families = None
-    use_steps = None
-    number_of_steps = None
-    incubation_days = None
-    infection_duration = None
-    initial_day_restriction = None
-    restriction_duration = None
-    social_distance_strictness = None
-    restriction_decreasing = None
-    n_initial_infected_nodes = None
-    R_0 = None
-    n_test = None
-    policy_test = None
-    contact_tracing_efficiency = None
-    contact_tracing_duration = None
-    use_random_seed = None
-    seed = None
     dump_type = None
-    use_probabilities = None
-    gamma = None
-    lambdaa = None
     path = None
 
     user_interaction = int(input(&#34;Press 0 to load the default values or 1 to manually input the configuration for the simulation: &#34;))
@@ -456,7 +415,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="ctns.contact_network_simulator.run_simulation"><code class="name flex">
-<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=2000, use_steps=False, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=10, policy_test='Random', contact_tracing_efficiency=0.8, contact_tracing_duration=14, quarantine_efficiency=1, use_random_seed=True, seed=42, use_probabilities=True, gamma=0.011, lambdaa=0.02, dump_type='full', path=None)</span>
+<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=2000, use_steps=False, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=10, policy_test='PBI', contact_tracing_efficiency=0.8, contact_tracing_duration=14, quarantine_efficiency=1, use_random_seed=True, seed=12345, use_probabilities=True, gamma=0.011, lambdaa=0.02, dump_type='full', path=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Execute the simulation and dump/return resulting networks</p>
@@ -534,12 +493,12 @@ The dumped file will have the following structure:
     n_initial_infected_nodes = 10,
     R_0 = 2.9,
     n_test = 10,
-    policy_test = &#34;Random&#34;,
+    policy_test = &#34;PBI&#34;,
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
     quarantine_efficiency = 1,
     use_random_seed = True,
-    seed = 42,
+    seed = 12345,
     use_probabilities = True,
     gamma = 0.011,
     lambdaa = 0.02,

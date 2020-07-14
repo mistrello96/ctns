@@ -26,9 +26,7 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import igraph as ig
-import random
-import numpy as np
+<pre><code class="python">import numpy as np
 from collections import Counter
 
 def fix_distribution_node_number(distribution, n_nodes):
@@ -216,14 +214,14 @@ def perform_test(node, incubation_days, use_probabilities):
         return True
     else:
         node[&#34;test_result&#34;] = 0
-        node[&#34;test_validity&#34;] = 10
+        node[&#34;test_validity&#34;] = incubation_days
         if use_probabilities:
             node[&#34;prob_inf&#34;] = 0
         return False
 
     return None
 
-def retrive_to_test(nodes, values, n_new_test, reverse = True):
+def retrive_to_test_quarantine(nodes, values, n_new_test, reverse = True):
     &#34;&#34;&#34;
     Test some nodes of the network and put the in quarantine if needed
     
@@ -244,23 +242,20 @@ def retrive_to_test(nodes, values, n_new_test, reverse = True):
 
     Return
     ------
-    to_test: list
+    selected: list
         List of nodes that will be tested
 
     &#34;&#34;&#34;
 
-    to_test = list()
+    selected = list()
 
     zipped_lists = zip(values, nodes)
     sorted_pairs = sorted(zipped_lists, reverse = reverse)
     tuples = zip(*sorted_pairs)
-    probs, sorted_nodes = [list(tuple) for tuple in  tuples]
-    to_test = sorted_nodes[:min(n_new_test, len(nodes))]
+    sorted_values, sorted_nodes = [list(tuple) for tuple in  tuples]
+    selected = sorted_nodes[:min(n_new_test, len(nodes))]
 
-    #print([x.index for x in to_test])
-    #print([round(x, 4) for x in probs[:n_new_test]])
-
-    return to_test</code></pre>
+    return selected</code></pre>
 </details>
 </section>
 <section>
@@ -451,7 +446,7 @@ If the node tested is found positive</p></div>
         return True
     else:
         node[&#34;test_result&#34;] = 0
-        node[&#34;test_validity&#34;] = 10
+        node[&#34;test_validity&#34;] = incubation_days
         if use_probabilities:
             node[&#34;prob_inf&#34;] = 0
         return False
@@ -505,8 +500,8 @@ related attributes of each node to the default value</p>
             node[&#34;prob_inf&#34;] = 0.0</code></pre>
 </details>
 </dd>
-<dt id="ctns.utility.retrive_to_test"><code class="name flex">
-<span>def <span class="ident">retrive_to_test</span></span>(<span>nodes, values, n_new_test, reverse=True)</span>
+<dt id="ctns.utility.retrive_to_test_quarantine"><code class="name flex">
+<span>def <span class="ident">retrive_to_test_quarantine</span></span>(<span>nodes, values, n_new_test, reverse=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test some nodes of the network and put the in quarantine if needed</p>
@@ -522,13 +517,13 @@ related attributes of each node to the default value</p>
 <dd>Sort using descending order</dd>
 </dl>
 <h2 id="return">Return</h2>
-<p>to_test: list
+<p>selected: list
 List of nodes that will be tested</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def retrive_to_test(nodes, values, n_new_test, reverse = True):
+<pre><code class="python">def retrive_to_test_quarantine(nodes, values, n_new_test, reverse = True):
     &#34;&#34;&#34;
     Test some nodes of the network and put the in quarantine if needed
     
@@ -549,23 +544,20 @@ List of nodes that will be tested</p></div>
 
     Return
     ------
-    to_test: list
+    selected: list
         List of nodes that will be tested
 
     &#34;&#34;&#34;
 
-    to_test = list()
+    selected = list()
 
     zipped_lists = zip(values, nodes)
     sorted_pairs = sorted(zipped_lists, reverse = reverse)
     tuples = zip(*sorted_pairs)
-    probs, sorted_nodes = [list(tuple) for tuple in  tuples]
-    to_test = sorted_nodes[:min(n_new_test, len(nodes))]
+    sorted_values, sorted_nodes = [list(tuple) for tuple in  tuples]
+    selected = sorted_nodes[:min(n_new_test, len(nodes))]
 
-    #print([x.index for x in to_test])
-    #print([round(x, 4) for x in probs[:n_new_test]])
-
-    return to_test</code></pre>
+    return selected</code></pre>
 </details>
 </dd>
 <dt id="ctns.utility.update_dump_report"><code class="name flex">
@@ -653,7 +645,7 @@ Updated dump doctionary</p></div>
 <li><code><a title="ctns.utility.fix_distribution_node_number" href="#ctns.utility.fix_distribution_node_number">fix_distribution_node_number</a></code></li>
 <li><code><a title="ctns.utility.perform_test" href="#ctns.utility.perform_test">perform_test</a></code></li>
 <li><code><a title="ctns.utility.reset_network" href="#ctns.utility.reset_network">reset_network</a></code></li>
-<li><code><a title="ctns.utility.retrive_to_test" href="#ctns.utility.retrive_to_test">retrive_to_test</a></code></li>
+<li><code><a title="ctns.utility.retrive_to_test_quarantine" href="#ctns.utility.retrive_to_test_quarantine">retrive_to_test_quarantine</a></code></li>
 <li><code><a title="ctns.utility.update_dump_report" href="#ctns.utility.update_dump_report">update_dump_report</a></code></li>
 </ul>
 </li>
