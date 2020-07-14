@@ -1,5 +1,3 @@
-import igraph as ig
-import random
 import numpy as np
 from collections import Counter
 

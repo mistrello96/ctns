@@ -1,4 +1,3 @@
-import igraph as ig
 import numpy as np
 from pathlib import Path
 from collections import deque, Counter

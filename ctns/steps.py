@@ -1,7 +1,5 @@
-import igraph as ig
 import random
 import numpy as np
-from collections import Counter
 try:
     from ctns.utility import retrive_to_test_quarantine, perform_test, compute_sd_reduction
 except ImportError as e:
