@@ -64,7 +64,6 @@ Each node will have the following relevant attributes:
 - quarantine -> 0 if the node is not in quarantine, an int representing how many days of quarantine remains otherwise
 - test_result -> -1 if no test has been made on the node, 0 if the test result is negative, 1 if the test result is positive
 - symptoms -> a list of symptoms shown by the node
-- need_IC -> if the node needs or not treatment in intensive care
 
 Please note that you will find other attributes used in the simulation process.
 
