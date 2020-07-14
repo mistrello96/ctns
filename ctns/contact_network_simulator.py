@@ -280,27 +280,7 @@ def run_simulation(n_of_families = 500,
 
 def main():
 
-    n_of_families = None
-    use_steps = None
-    number_of_steps = None
-    incubation_days = None
-    infection_duration = None
-    initial_day_restriction = None
-    restriction_duration = None
-    social_distance_strictness = None
-    restriction_decreasing = None
-    n_initial_infected_nodes = None
-    R_0 = None
-    n_test = None
-    policy_test = None
-    contact_tracing_efficiency = None
-    contact_tracing_duration = None
-    use_random_seed = None
-    seed = None
     dump_type = None
-    use_probabilities = None
-    gamma = None
-    lambdaa = None
     path = None
 
     user_interaction = int(input("Press 0 to load the default values or 1 to manually input the configuration for the simulation: "))

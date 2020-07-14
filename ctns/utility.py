@@ -195,7 +195,7 @@ def perform_test(node, incubation_days, use_probabilities):
 
     return None
 
-def retrive_to_test(nodes, values, n_new_test, reverse = True):
+def retrive_to_test_quarantine(nodes, values, n_new_test, reverse = True):
     """
     Test some nodes of the network and put the in quarantine if needed
     
@@ -216,17 +216,17 @@ def retrive_to_test(nodes, values, n_new_test, reverse = True):
 
     Return
     ------
-    to_test: list
+    selected: list
         List of nodes that will be tested
 
     """
 
-    to_test = list()
+    selected = list()
 
     zipped_lists = zip(values, nodes)
     sorted_pairs = sorted(zipped_lists, reverse = reverse)
     tuples = zip(*sorted_pairs)
-    probs, sorted_nodes = [list(tuple) for tuple in  tuples]
-    to_test = sorted_nodes[:min(n_new_test, len(nodes))]
+    sorted_values, sorted_nodes = [list(tuple) for tuple in  tuples]
+    selected = sorted_nodes[:min(n_new_test, len(nodes))]
 
-    return to_test
+    return selected
