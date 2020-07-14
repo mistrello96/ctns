@@ -429,7 +429,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
         if quarantine_efficiency == 1:
             possibly_quarantine = list(possibly_tracked)
-        elif quarantine_efficiency == 0 or possibly_quarantine == list():
+        elif quarantine_efficiency == 0 or possibly_tracked == list():
             possibly_quarantine = list()
         else:
             if policy_test == "Random":
