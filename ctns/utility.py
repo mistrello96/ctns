@@ -226,7 +226,7 @@ def retrive_to_test(nodes, values, n_new_test, reverse = True):
     zipped_lists = zip(values, nodes)
     sorted_pairs = sorted(zipped_lists, reverse = reverse)
     tuples = zip(*sorted_pairs)
-    _, sorted_nodes = [ list(tuple) for tuple in  tuples]
+    probs, sorted_nodes = [list(tuple) for tuple in  tuples]
     to_test = sorted_nodes[:min(n_new_test, len(nodes))]
 
     return to_test
