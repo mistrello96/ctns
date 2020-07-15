@@ -167,7 +167,7 @@ def step_edges(G, restriction_value):
             toRemove.append(edge)
     G.delete_edges(toRemove)  
 
-def step_spread(G, incubation_days, infection_duration, transmission_rate, use_probabilities, alpha, gamma):
+def step_spread(G, incubation_days, infection_duration, transmission_rate, use_probabilities, gamma):
     """
     Make the infection spread across the network
     
@@ -187,9 +187,6 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, use_p
 
     use_probabilities: bool
         Enables probabilities of being infected estimation
-
-    alpha: float
-        Parameter to regulate probability of being infected contact decay. Domain = (0, 1). Lower values corresponds to higher probability decay
 
     gamma: float
         Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
@@ -267,13 +264,13 @@ def step_spread(G, incubation_days, infection_duration, transmission_rate, use_p
             weight = edge["weight"]
             source = edge.source
             target = edge.target
-            nodes_contact_probs[source] *= 1 - (1 - 1 / (1 + alpha * 21)) * old_prob[target] * (1 - np.e**(- gamma * weight))
-            nodes_contact_probs[target] *= 1 - (1 - 1 / (1 + alpha * 21)) * old_prob[source] * (1 - np.e**(- gamma * weight))
+            nodes_contact_probs[source] *= 1 - old_prob[target] * (1 - np.e**(-gamma * weight))
+            nodes_contact_probs[target] *= 1 - old_prob[source] * (1 - np.e**(-gamma * weight))
 
         for node in G.vs:
             if node["agent_status"] != "D" and not (node["test_result"] == 0 and node["agent_status"] == "R"):
                 index = node.index
-                node["prob_inf"] = 1 - (1 / (1 + alpha * 21)) * old_prob[index] - (1 - old_prob[index]) * nodes_contact_probs[index]
+                node["prob_inf"] = 1 - (1 - old_prob[index] * np.tanh(old_prob[index] + 0.5)) * nodes_contact_probs[index]
    
 def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing_efficiency, quarantine_efficiency, use_probabilities, lambdaa):
     """
@@ -458,7 +455,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 def step(G, step_index, incubation_days, infection_duration, transmission_rate,
          initial_day_restriction, restriction_duration, social_distance_strictness,
          restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
-         quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa):
+         quarantine_efficiency, use_probabilities, gamma, lambdaa):
     """
     Advance the simulation of one step
     
@@ -511,9 +508,6 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     use_probabilities: bool
         Enables probabilities of being infected estimation
 
-    alpha: float
-        Parameter to regulate probability of being infected contact decay. Domain = (0, 1). Lower values corresponds to higher probability decay
-
     gamma: float
         Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
 
@@ -548,7 +542,7 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
             step_edges(G, 1)
     
     # spread infection
-    step_spread(G, incubation_days, infection_duration, transmission_rate, use_probabilities, alpha, gamma)
+    step_spread(G, incubation_days, infection_duration, transmission_rate, use_probabilities, gamma)
           
     # make some test on nodes
     new_positive_counter = step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency, quarantine_efficiency, use_probabilities, lambdaa)
