@@ -377,7 +377,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
             
     # tracked will contain family contacts (quarantine 100%), 
     # possibly_tracked will contain other contacts, quarantine influenced by contact tracing efficiency
-    ct_nets = nets + [G.copy()]
+    ct_nets = list(nets) + [G.copy()]
 
     if len(found_positive) > 0:
         tracked = set()
