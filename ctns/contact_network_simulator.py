@@ -11,7 +11,7 @@ except ImportError as e:
     from steps import step
     from utility import update_dump_report
 
-def run_simulation(n_of_families = 500,
+def run_simulation(n_of_families = 250,
     use_steps = True,
     number_of_steps = 150,
     incubation_days = 5,
@@ -29,8 +29,9 @@ def run_simulation(n_of_families = 500,
     quarantine_efficiency = 0.4,
     use_random_seed = True,
     seed = 42,
-    use_probabilities = False,
-    gamma = 0.011,
+    use_probabilities = True,
+    alpha = 0.5,
+    gamma = 0.003,
     lambdaa = 0.02,
     dump_type = None,
     path = None):
@@ -97,6 +98,9 @@ def run_simulation(n_of_families = 500,
 
     use_probabilities: bool
         Enables probabilities of being infected estimation
+
+    alpha: float
+        Parameter to regulate probability of being infected contact decay. Domain = (0, 1). Lower values corresponds to higher probability decay
 
     gamma: float
         Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
@@ -242,7 +246,7 @@ def run_simulation(n_of_families = 500,
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
-                             quarantine_efficiency, use_probabilities, gamma, lambdaa)
+                             quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
             nets.append(net.copy())
             if dump_type == "full":
                 to_dump["nets"].append(net.copy())
@@ -256,7 +260,7 @@ def run_simulation(n_of_families = 500,
             net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
-                             quarantine_efficiency, use_probabilities, gamma, lambdaa)
+                             quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
             nets.append(net.copy())
             sim_index += 1
 
@@ -307,6 +311,7 @@ def main():
             seed = int(input("Please insert the random seed: "))
         use_probabilities = int(input("Press 1 to enable estimation of probabilities of being infected, 0 otherwise: "))
         if use_probabilities:
+            alpha = float(input("Please insert the value of alpha: "))
             gamma = float(input("Please insert the value of gamma: "))
             lambdaa = float(input("Please insert the value of lambdaa: "))
         dump_type = input("Please insert the dump type. Can be either full of light: ")
@@ -315,7 +320,7 @@ def main():
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
-            quarantine_efficiency, use_random_seed, seed, use_probabilities, gamma, lambdaa, dump_type, path)
+            quarantine_efficiency, use_random_seed, seed, use_probabilities, alpha, gamma, lambdaa, dump_type, path)
     else:
         dump_type = input("Please insert the dump type. Can be either full of light: ")
         path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")
