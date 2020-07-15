@@ -286,7 +286,7 @@ def compute_TR(G, R_0, infection_duration, incubation_days):
     avr_deg = list()
     # compute average weighted degree on 20 steps
     for i in range (20):
-        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, &#34;Random&#34;, 0, 0, False, 0, 0, 0)
+        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, &#34;Random&#34;, 0, 0, False, 0, 0)
 
         degrees = G.strength(list(range(len(G.vs))), weights = &#34;weight&#34;)
         avr_deg.append(sum(degrees) / len(degrees))
@@ -355,7 +355,7 @@ The transmission rate for the network</p></div>
     avr_deg = list()
     # compute average weighted degree on 20 steps
     for i in range (20):
-        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, &#34;Random&#34;, 0, 0, False, 0, 0, 0)
+        step(G, i, 0, 0, 0, 0, 0, 0, False, list(), 0, &#34;Random&#34;, 0, 0, False, 0, 0)
 
         degrees = G.strength(list(range(len(G.vs))), weights = &#34;weight&#34;)
         avr_deg.append(sum(degrees) / len(degrees))
