@@ -57,7 +57,7 @@ def reset_network(G):
         if "prob_inf" in G.vs.attributes():
             node["prob_inf"] = 0.0
 
-def update_dump_report(to_dump, net):
+def update_dump_report(to_dump, net, new_positive_counter):
     """
     Update the simulation dump in case light dump is selected
     
@@ -68,6 +68,9 @@ def update_dump_report(to_dump, net):
 
     net: ig.Graph()
         The contact network
+
+    new_positive_counter: int
+        Number of new positive nodes found on this iteration
 
     Return
     ------
@@ -96,6 +99,7 @@ def update_dump_report(to_dump, net):
     to_dump['quarantined'].append(quarantined)
     to_dump['positive'].append(positive)
     to_dump['tested'].append(tested)
+    to_dump['new_positive_counter'].append(new_positive_counter)
     to_dump['total'].append(sum(network_report.values()))
 
     return to_dump

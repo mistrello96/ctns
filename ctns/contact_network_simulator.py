@@ -239,11 +239,12 @@ def run_simulation(n_of_families = 250,
         to_dump['positive'] = list()
         to_dump['tested'] = list()
         to_dump['total'] = list()
+        to_dump['new_positive_counter'] = list()
         to_dump['parameters'] = config
 
     if use_steps:
         for sim_index in range (0, number_of_steps):
-            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net, new_positive_counter = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
                              quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
@@ -251,13 +252,13 @@ def run_simulation(n_of_families = 250,
             if dump_type == "full":
                 to_dump["nets"].append(net.copy())
             if dump_type == "light":
-                to_dump = update_dump_report(to_dump, net)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter)
     else:
         exposed = n_initial_infected_nodes
         infected = 0
         sim_index = 0
         while((infected + exposed) != 0):
-            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net, new_positive_counter = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
                              quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
@@ -267,7 +268,7 @@ def run_simulation(n_of_families = 250,
             if dump_type == "full":
                 to_dump["nets"].append(net.copy())
             if dump_type == "light":
-                to_dump = update_dump_report(to_dump, net)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter)
             
             network_report = Counter(net.vs["agent_status"])
             infected = network_report["I"]

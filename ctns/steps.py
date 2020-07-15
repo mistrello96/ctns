@@ -317,7 +317,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
     Return
     ------
-    None
+    new_positive_counter: int
+        Number of new positive nodes found on this iteration
 
     """
 
@@ -352,6 +353,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
     to_test = list()
 
+    new_positive_counter = 0
+
     if n_new_test:
         if policy_test == "Random":
             to_test = random.sample(low_priority_test_pool, min(len(low_priority_test_pool), n_new_test))
@@ -376,6 +379,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         result = perform_test(node, incubation_days, use_probabilities)
         if result:
             found_positive.add(node.index)
+            new_positive_counter += 1
             
     # tracked will contain family contacts (quarantine 100%), 
     # possibly_tracked will contain other contacts, quarantine influenced by contact tracing efficiency
@@ -454,6 +458,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
             for node in to_quarantine:
                 node["quarantine"] = 14
 
+    return new_positive_counter
+
 def step(G, step_index, incubation_days, infection_duration, transmission_rate,
          initial_day_restriction, restriction_duration, social_distance_strictness,
          restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
@@ -523,6 +529,10 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     ------
     G: ig.Graph()
         The contact network
+
+    new_positive_counter: int
+        Number of new positive nodes found on this iteration
+
         
     """
 
@@ -546,10 +556,6 @@ def step(G, step_index, incubation_days, infection_duration, transmission_rate,
     step_spread(G, incubation_days, infection_duration, transmission_rate, use_probabilities, alpha, gamma)
           
     # make some test on nodes
-    step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency, quarantine_efficiency, use_probabilities, lambdaa)
+    new_positive_counter = step_test(G, nets, incubation_days, n_test, policy_test, contact_tracing_efficiency, quarantine_efficiency, use_probabilities, lambdaa)
 
-    agent_status_report = list()
-    for node in G.vs:
-        agent_status_report.append(node["agent_status"])
-
-    return G  
+    return G, new_positive_counter
