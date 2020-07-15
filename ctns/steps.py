@@ -28,8 +28,6 @@ def generate_family_edges(G):
             and G.vs[edge[1]]["agent_status"] != "D" \
             and not G.vs[edge[0]]["quarantine"] \
             and not G.vs[edge[1]]["quarantine"]:
-            #and not (edge[0], edge[1]) in toAdd
-            #and not (edge[1], edge[0]) in toAdd:
                 toAdd.append(edge)
 
     weights = np.random.randint(3, 8, len(toAdd))
@@ -82,8 +80,6 @@ def generate_occfreq_edges(G, edge_category, restriction_value):
             and not G.vs[edge[0]]["quarantine"] \
             and not G.vs[edge[1]]["quarantine"] \
             and not G[edge[0], edge[1]]:
-            #and not (edge[0], edge[1]) in toAdd \
-            #and not (edge[1], edge[0]) in toAdd:
                 toAdd.append(edge)
 
     weights = np.random.randint(1, 6, len(toAdd))
@@ -126,8 +122,6 @@ def generate_random_edges(G, number_of_random_edges, restriction_value):
         and not G.vs[source]["quarantine"] \
         and not G.vs[target]["quarantine"] \
         and not G[source, target]:
-        #and not (source, target) in toAdd \
-        #and not (target, source) in toAdd:
             toAdd.append((source, target))
 
     G.add_edges(toAdd)
@@ -383,12 +377,13 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
             
     # tracked will contain family contacts (quarantine 100%), 
     # possibly_tracked will contain other contacts, quarantine influenced by contact tracing efficiency
+    ct_nets = nets + [G.copy()]
 
-    if len(found_positive) > 0 and len(nets) > 0:
+    if len(found_positive) > 0:
         tracked = set()
         possibly_tracked = set()
         # trace contacts
-        for net in nets:
+        for net in ct_nets:
             for edge in net.es:
                 if edge["category"] == "family_contacts" \
                 and (edge.source in found_positive or edge.target in found_positive):
@@ -421,16 +416,16 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
             
             # update prob of being infected of past tracked contact 
-                for net_index in range(len(nets)):
-                    net = nets[-net_index]
+                for net_index in range(1, len(ct_nets) + 1):
+                    net = ct_nets[- net_index]
                     for contact in net.neighborhood(node)[1:]:
                         contact_node = G.vs[contact]
                         if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
                             if contact in tracked + possibly_tracked:
                                 current_contact_weight = net[node, contact]
+                                # use net_index instead of net_index + 1 since net index is already +1 from line above 
                                 contact_node["prob_inf"] = contact_node["prob_inf"] \
-                                                            + lambdaa * np.e**(- (net_index + 1) * (1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
-
+                                                            + lambdaa * np.e**(- (net_index) * (1 / current_contact_weight)) * (1 - contact_node["prob_inf"])
         
         possibly_quarantine = list()
 
@@ -456,7 +451,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         # put them in quarantine
         if to_quarantine != list() and to_quarantine != None:
             for node in to_quarantine:
-                node["quarantine"] = 14
+                node["quarantine"] = 14 
 
     return new_positive_counter
 

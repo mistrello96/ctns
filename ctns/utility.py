@@ -148,7 +148,6 @@ def compute_sd_reduction(step_index, initial_day_restriction, restriction_durati
     for i in range(1, len(strictness_sequence)):
       strictness_sequence[i] += strictness_sequence[i - 1]
 
-
     social_distance_reduction = None
 
     for i in range(len(strictness_sequence)):

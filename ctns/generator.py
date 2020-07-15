@@ -114,14 +114,12 @@ def generate_network(n_of_families, use_probabilities):
 
     number_of_nodes = np.sum(family_distribution)
 
-
     # frequent contact distribution
     frequent_contact_distribution = np.random.normal(12, 3, n_of_families).round().astype(int)
     frequent_contact_distribution = list(frequent_contact_distribution[frequent_contact_distribution >= 0])
 
     # refine to have sum = node number
     frequent_contact_distribution = fix_distribution_node_number(frequent_contact_distribution, number_of_nodes)
-
 
     # occasional contact distribution
     occasional_contact_distribution = np.random.normal(24, 6, n_of_families).round().astype(int)
