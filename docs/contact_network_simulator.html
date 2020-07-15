@@ -39,8 +39,8 @@ except ImportError as e:
     from steps import step
     from utility import update_dump_report
 
-def run_simulation(n_of_families = 250,
-    use_steps = True,
+def run_simulation(n_of_families = 2000,
+    use_steps = False,
     number_of_steps = 150,
     incubation_days = 5,
     infection_duration = 21,
@@ -48,15 +48,15 @@ def run_simulation(n_of_families = 250,
     restriction_duration = 21,
     social_distance_strictness = 2,
     restriction_decreasing = True,
-    n_initial_infected_nodes = 3,
+    n_initial_infected_nodes = 10,
     R_0 = 2.9,
-    n_test = 3,
-    policy_test = &#34;Random&#34;,
+    n_test = 10,
+    policy_test = &#34;PBI&#34;,
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
-    quarantine_efficiency = 0.4,
+    quarantine_efficiency = 0.3,
     use_random_seed = True,
-    seed = 42,
+    seed = 1,
     use_probabilities = True,
     alpha = 0.5,
     gamma = 0.003,
@@ -267,11 +267,12 @@ def run_simulation(n_of_families = 250,
         to_dump[&#39;positive&#39;] = list()
         to_dump[&#39;tested&#39;] = list()
         to_dump[&#39;total&#39;] = list()
+        to_dump[&#39;new_positive_counter&#39;] = list()
         to_dump[&#39;parameters&#39;] = config
 
     if use_steps:
         for sim_index in range (0, number_of_steps):
-            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net, new_positive_counter = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
                              quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
@@ -279,13 +280,13 @@ def run_simulation(n_of_families = 250,
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter)
     else:
         exposed = n_initial_infected_nodes
         infected = 0
         sim_index = 0
         while((infected + exposed) != 0):
-            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net, new_positive_counter = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
                              quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
@@ -295,7 +296,7 @@ def run_simulation(n_of_families = 250,
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter)
             
             network_report = Counter(net.vs[&#34;agent_status&#34;])
             infected = network_report[&#34;I&#34;]
@@ -421,7 +422,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="ctns.contact_network_simulator.run_simulation"><code class="name flex">
-<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=250, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=3, R_0=2.9, n_test=3, policy_test='Random', contact_tracing_efficiency=0.8, contact_tracing_duration=14, quarantine_efficiency=0.4, use_random_seed=True, seed=42, use_probabilities=True, alpha=0.5, gamma=0.003, lambdaa=0.02, dump_type=None, path=None)</span>
+<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=2000, use_steps=False, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=10, policy_test='PBI', contact_tracing_efficiency=0.8, contact_tracing_duration=14, quarantine_efficiency=0.3, use_random_seed=True, seed=1, use_probabilities=True, alpha=0.5, gamma=0.003, lambdaa=0.02, dump_type=None, path=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Execute the simulation and dump/return resulting networks</p>
@@ -489,8 +490,8 @@ The dumped file will have the following structure:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def run_simulation(n_of_families = 250,
-    use_steps = True,
+<pre><code class="python">def run_simulation(n_of_families = 2000,
+    use_steps = False,
     number_of_steps = 150,
     incubation_days = 5,
     infection_duration = 21,
@@ -498,15 +499,15 @@ The dumped file will have the following structure:
     restriction_duration = 21,
     social_distance_strictness = 2,
     restriction_decreasing = True,
-    n_initial_infected_nodes = 3,
+    n_initial_infected_nodes = 10,
     R_0 = 2.9,
-    n_test = 3,
-    policy_test = &#34;Random&#34;,
+    n_test = 10,
+    policy_test = &#34;PBI&#34;,
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
-    quarantine_efficiency = 0.4,
+    quarantine_efficiency = 0.3,
     use_random_seed = True,
-    seed = 42,
+    seed = 1,
     use_probabilities = True,
     alpha = 0.5,
     gamma = 0.003,
@@ -717,11 +718,12 @@ The dumped file will have the following structure:
         to_dump[&#39;positive&#39;] = list()
         to_dump[&#39;tested&#39;] = list()
         to_dump[&#39;total&#39;] = list()
+        to_dump[&#39;new_positive_counter&#39;] = list()
         to_dump[&#39;parameters&#39;] = config
 
     if use_steps:
         for sim_index in range (0, number_of_steps):
-            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net, new_positive_counter = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
                              quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
@@ -729,13 +731,13 @@ The dumped file will have the following structure:
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter)
     else:
         exposed = n_initial_infected_nodes
         infected = 0
         sim_index = 0
         while((infected + exposed) != 0):
-            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net, new_positive_counter = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
                              quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
@@ -745,7 +747,7 @@ The dumped file will have the following structure:
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter)
             
             network_report = Counter(net.vs[&#34;agent_status&#34;])
             infected = network_report[&#34;I&#34;]
