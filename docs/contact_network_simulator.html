@@ -54,13 +54,14 @@ def run_simulation(n_of_families = 2000,
     policy_test = &#34;PBI&#34;,
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
-    quarantine_efficiency = 1,
+    quarantine_efficiency = 0.3,
     use_random_seed = True,
-    seed = 12345,
+    seed = 1,
     use_probabilities = True,
-    gamma = 0.011,
+    alpha = 0.5,
+    gamma = 0.003,
     lambdaa = 0.02,
-    dump_type = &#34;full&#34;,
+    dump_type = None,
     path = None):
     &#34;&#34;&#34;
     Execute the simulation and dump/return resulting networks
@@ -125,6 +126,9 @@ def run_simulation(n_of_families = 2000,
 
     use_probabilities: bool
         Enables probabilities of being infected estimation
+
+    alpha: float
+        Parameter to regulate probability of being infected contact decay. Domain = (0, 1). Lower values corresponds to higher probability decay
 
     gamma: float
         Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
@@ -263,35 +267,36 @@ def run_simulation(n_of_families = 2000,
         to_dump[&#39;positive&#39;] = list()
         to_dump[&#39;tested&#39;] = list()
         to_dump[&#39;total&#39;] = list()
+        to_dump[&#39;new_positive_counter&#39;] = list()
         to_dump[&#39;parameters&#39;] = config
 
     if use_steps:
         for sim_index in range (0, number_of_steps):
-            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net, new_positive_counter = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
-                             quarantine_efficiency, use_probabilities, gamma, lambdaa)
+                             quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
             nets.append(net.copy())
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter)
     else:
         exposed = n_initial_infected_nodes
         infected = 0
         sim_index = 0
         while((infected + exposed) != 0):
-            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net, new_positive_counter = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
-                             quarantine_efficiency, use_probabilities, gamma, lambdaa)
+                             quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
             nets.append(net.copy())
             sim_index += 1
 
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter)
             
             network_report = Counter(net.vs[&#34;agent_status&#34;])
             infected = network_report[&#34;I&#34;]
@@ -335,6 +340,7 @@ def main():
             seed = int(input(&#34;Please insert the random seed: &#34;))
         use_probabilities = int(input(&#34;Press 1 to enable estimation of probabilities of being infected, 0 otherwise: &#34;))
         if use_probabilities:
+            alpha = float(input(&#34;Please insert the value of alpha: &#34;))
             gamma = float(input(&#34;Please insert the value of gamma: &#34;))
             lambdaa = float(input(&#34;Please insert the value of lambdaa: &#34;))
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
@@ -343,7 +349,7 @@ def main():
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
-            quarantine_efficiency, use_random_seed, seed, use_probabilities, gamma, lambdaa, dump_type, path)
+            quarantine_efficiency, use_random_seed, seed, use_probabilities, alpha, gamma, lambdaa, dump_type, path)
     else:
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
@@ -399,6 +405,7 @@ if __name__ == &#34;__main__&#34;:
             seed = int(input(&#34;Please insert the random seed: &#34;))
         use_probabilities = int(input(&#34;Press 1 to enable estimation of probabilities of being infected, 0 otherwise: &#34;))
         if use_probabilities:
+            alpha = float(input(&#34;Please insert the value of alpha: &#34;))
             gamma = float(input(&#34;Please insert the value of gamma: &#34;))
             lambdaa = float(input(&#34;Please insert the value of lambdaa: &#34;))
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
@@ -407,7 +414,7 @@ if __name__ == &#34;__main__&#34;:
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
-            quarantine_efficiency, use_random_seed, seed, use_probabilities, gamma, lambdaa, dump_type, path)
+            quarantine_efficiency, use_random_seed, seed, use_probabilities, alpha, gamma, lambdaa, dump_type, path)
     else:
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
@@ -415,7 +422,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="ctns.contact_network_simulator.run_simulation"><code class="name flex">
-<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=2000, use_steps=False, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=10, policy_test='PBI', contact_tracing_efficiency=0.8, contact_tracing_duration=14, quarantine_efficiency=1, use_random_seed=True, seed=12345, use_probabilities=True, gamma=0.011, lambdaa=0.02, dump_type='full', path=None)</span>
+<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=2000, use_steps=False, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=10, policy_test='PBI', contact_tracing_efficiency=0.8, contact_tracing_duration=14, quarantine_efficiency=0.3, use_random_seed=True, seed=1, use_probabilities=True, alpha=0.5, gamma=0.003, lambdaa=0.02, dump_type=None, path=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Execute the simulation and dump/return resulting networks</p>
@@ -461,6 +468,8 @@ Note that family contacts are not included in this reduction</dd>
 <dd>The random seed value</dd>
 <dt><strong><code>use_probabilities</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Enables probabilities of being infected estimation</dd>
+<dt><strong><code>alpha</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parameter to regulate probability of being infected contact decay. Domain = (0, 1). Lower values corresponds to higher probability decay</dd>
 <dt><strong><code>gamma</code></strong> :&ensp;<code>float</code></dt>
 <dd>Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion</dd>
 <dt><strong><code>lambdaa</code></strong> :&ensp;<code>float</code></dt>
@@ -496,13 +505,14 @@ The dumped file will have the following structure:
     policy_test = &#34;PBI&#34;,
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
-    quarantine_efficiency = 1,
+    quarantine_efficiency = 0.3,
     use_random_seed = True,
-    seed = 12345,
+    seed = 1,
     use_probabilities = True,
-    gamma = 0.011,
+    alpha = 0.5,
+    gamma = 0.003,
     lambdaa = 0.02,
-    dump_type = &#34;full&#34;,
+    dump_type = None,
     path = None):
     &#34;&#34;&#34;
     Execute the simulation and dump/return resulting networks
@@ -567,6 +577,9 @@ The dumped file will have the following structure:
 
     use_probabilities: bool
         Enables probabilities of being infected estimation
+
+    alpha: float
+        Parameter to regulate probability of being infected contact decay. Domain = (0, 1). Lower values corresponds to higher probability decay
 
     gamma: float
         Parameter to regulate probability of being infected contact diffusion. Domain = (0, +inf). Higher values corresponds to stronger probability diffusion
@@ -705,35 +718,36 @@ The dumped file will have the following structure:
         to_dump[&#39;positive&#39;] = list()
         to_dump[&#39;tested&#39;] = list()
         to_dump[&#39;total&#39;] = list()
+        to_dump[&#39;new_positive_counter&#39;] = list()
         to_dump[&#39;parameters&#39;] = config
 
     if use_steps:
         for sim_index in range (0, number_of_steps):
-            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net, new_positive_counter = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
-                             quarantine_efficiency, use_probabilities, gamma, lambdaa)
+                             quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
             nets.append(net.copy())
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter)
     else:
         exposed = n_initial_infected_nodes
         infected = 0
         sim_index = 0
         while((infected + exposed) != 0):
-            net = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
+            net, new_positive_counter = step(G, sim_index, incubation_days, infection_duration, transmission_rate,
                              initial_day_restriction, restriction_duration, social_distance_strictness, 
                              restriction_decreasing, nets, n_test, policy_test, contact_tracing_efficiency,
-                             quarantine_efficiency, use_probabilities, gamma, lambdaa)
+                             quarantine_efficiency, use_probabilities, alpha, gamma, lambdaa)
             nets.append(net.copy())
             sim_index += 1
 
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter)
             
             network_report = Counter(net.vs[&#34;agent_status&#34;])
             infected = network_report[&#34;I&#34;]
