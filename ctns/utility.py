@@ -100,6 +100,7 @@ def update_dump_report(to_dump, net, new_positive_counter):
     to_dump['positive'].append(positive)
     to_dump['tested'].append(tested)
     to_dump['new_positive_counter'].append(new_positive_counter)
+    to_dump['avg_prob_inf'].append(np.mean(net.vs['prob_inf']))
     to_dump['total'].append(sum(network_report.values()))
 
     return to_dump
