@@ -332,7 +332,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
          and not (node["test_result"] == 0 and node["agent_status"] == "R"):
             low_priority_test_pool.add(node.index)
 
-    low_priority_test_pool = low_priority_test_pool - high_priority_test_pool
+    low_priority_test_pool -= high_priority_test_pool
     found_positive = set()
     #cannot directly put nodes in a set cause node object are not supported
     high_priority_test_pool = [G.vs[i] for i in high_priority_test_pool]
@@ -395,8 +395,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
                         possibly_tracked.add(G.vs[edge.source].index)
         
         # set diff to remove double contacts
-        possibly_tracked = possibly_tracked - tracked
-        if len(possibly_tracked) > int(len(possibly_tracked) * contact_tracing_efficiency):
+        possibly_tracked -= tracked
+        if int(len(possibly_tracked) * contact_tracing_efficiency) > 0:
             possibly_tracked = random.sample(possibly_tracked, int(len(possibly_tracked) * contact_tracing_efficiency))
         else:
             possibly_tracked = list(possibly_tracked)
@@ -413,8 +413,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
             
             # update prob of being infected of past tracked contact 
-                for net_index in range(1, len(ct_nets) + 1):
-                    net = ct_nets[- net_index]
+                for net_index in range(1, len(nets) + 1):
+                    net = nets[- net_index]
                     for contact in net.neighborhood(node)[1:]:
                         contact_node = G.vs[contact]
                         if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
@@ -446,9 +446,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         to_quarantine = [G.vs[i] for i in tracked + possibly_quarantine]
         
         # put them in quarantine
-        if to_quarantine != list() and to_quarantine != None:
-            for node in to_quarantine:
-                node["quarantine"] = 14 
+        for node in to_quarantine:
+            node["quarantine"] = 14 
 
     return new_positive_counter
 
