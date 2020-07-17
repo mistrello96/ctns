@@ -416,8 +416,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
 
             
             # update prob of being infected of past tracked contact 
-                for net_index in range(1, len(ct_nets) + 1):
-                    net = ct_nets[- net_index]
+                for net_index in range(1, len(nets) + 1):
+                    net = nets[- net_index]
                     for contact in net.neighborhood(node)[1:]:
                         contact_node = G.vs[contact]
                         if contact_node["agent_status"] != "D" and not (contact_node["test_result"] == 0 and contact_node["agent_status"] == "R"):
@@ -449,9 +449,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
         to_quarantine = [G.vs[i] for i in tracked + possibly_quarantine]
         
         # put them in quarantine
-        if to_quarantine != list() and to_quarantine != None:
-            for node in to_quarantine:
-                node["quarantine"] = 14 
+        for node in to_quarantine:
+            node["quarantine"] = 14
 
     return new_positive_counter
 
