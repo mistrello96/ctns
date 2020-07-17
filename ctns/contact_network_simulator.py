@@ -240,6 +240,7 @@ def run_simulation(n_of_families = 250,
         to_dump['tested'] = list()
         to_dump['total'] = list()
         to_dump['new_positive_counter'] = list()
+        to_dump['avg_prob_inf'] = list()
         to_dump['parameters'] = config
 
     if use_steps:

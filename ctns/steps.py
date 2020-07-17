@@ -335,7 +335,7 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
          and not (node["test_result"] == 0 and node["agent_status"] == "R"):
             low_priority_test_pool.add(node.index)
 
-    low_priority_test_pool = low_priority_test_pool - high_priority_test_pool
+    low_priority_test_pool -= high_priority_test_pool
     found_positive = set()
     #cannot directly put nodes in a set cause node object are not supported
     high_priority_test_pool = [G.vs[i] for i in high_priority_test_pool]
@@ -398,8 +398,8 @@ def step_test(G, nets, incubation_days, n_new_test, policy_test, contact_tracing
                         possibly_tracked.add(G.vs[edge.source].index)
         
         # set diff to remove double contacts
-        possibly_tracked = possibly_tracked - tracked
-        if len(possibly_tracked) > int(len(possibly_tracked) * contact_tracing_efficiency):
+        possibly_tracked -= tracked
+        if int(len(possibly_tracked) * contact_tracing_efficiency) > 0:
             possibly_tracked = random.sample(possibly_tracked, int(len(possibly_tracked) * contact_tracing_efficiency))
         else:
             possibly_tracked = list(possibly_tracked)
