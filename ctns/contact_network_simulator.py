@@ -192,6 +192,9 @@ def run_simulation(n_of_families = 250,
     if dump_type != "full" and dump_type != "light":
         print("Invalid dump type")
         sys.exit()
+    if path == None:
+        print("Invalid path")
+        sys.exit()
     if not use_probabilities and policy_test == "PBI":
         print("Cannot use PBI if probability of being infected is not enabled")
         sys.exit()
