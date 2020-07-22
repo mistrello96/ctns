@@ -29,7 +29,7 @@ def run_simulation(n_of_families = 250,
     quarantine_efficiency = 0.4,
     use_random_seed = True,
     seed = 42,
-    use_probabilities = True,
+    use_probabilities = False,
     alpha = 0.5,
     gamma = 0.003,
     lambdaa = 0.02,
@@ -256,7 +256,7 @@ def run_simulation(n_of_families = 250,
             if dump_type == "full":
                 to_dump["nets"].append(net.copy())
             if dump_type == "light":
-                to_dump = update_dump_report(to_dump, net, new_positive_counter)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter, use_probabilities)
     else:
         exposed = n_initial_infected_nodes
         infected = 0
@@ -272,7 +272,7 @@ def run_simulation(n_of_families = 250,
             if dump_type == "full":
                 to_dump["nets"].append(net.copy())
             if dump_type == "light":
-                to_dump = update_dump_report(to_dump, net, new_positive_counter)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter, use_probabilities)
             
             network_report = Counter(net.vs["agent_status"])
             infected = network_report["I"]

@@ -85,7 +85,7 @@ def reset_network(G):
         if &#34;prob_inf&#34; in G.vs.attributes():
             node[&#34;prob_inf&#34;] = 0.0
 
-def update_dump_report(to_dump, net, new_positive_counter):
+def update_dump_report(to_dump, net, new_positive_counter, use_probabilities):
     &#34;&#34;&#34;
     Update the simulation dump in case light dump is selected
     
@@ -99,6 +99,9 @@ def update_dump_report(to_dump, net, new_positive_counter):
 
     new_positive_counter: int
         Number of new positive nodes found on this iteration
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
 
     Return
     ------
@@ -128,6 +131,8 @@ def update_dump_report(to_dump, net, new_positive_counter):
     to_dump[&#39;positive&#39;].append(positive)
     to_dump[&#39;tested&#39;].append(tested)
     to_dump[&#39;new_positive_counter&#39;].append(new_positive_counter)
+    if use_probabilities:
+        to_dump[&#39;avg_prob_inf&#39;].append(np.mean(net.vs[&#39;prob_inf&#39;]))
     to_dump[&#39;total&#39;].append(sum(network_report.values()))
 
     return to_dump
@@ -563,7 +568,7 @@ List of nodes that will be tested</p></div>
 </details>
 </dd>
 <dt id="ctns.utility.update_dump_report"><code class="name flex">
-<span>def <span class="ident">update_dump_report</span></span>(<span>to_dump, net, new_positive_counter)</span>
+<span>def <span class="ident">update_dump_report</span></span>(<span>to_dump, net, new_positive_counter, use_probabilities)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Update the simulation dump in case light dump is selected</p>
@@ -575,6 +580,8 @@ List of nodes that will be tested</p></div>
 <dd>The contact network</dd>
 <dt><strong><code>new_positive_counter</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of new positive nodes found on this iteration</dd>
+<dt><strong><code>use_probabilities</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Enables probabilities of being infected estimation</dd>
 </dl>
 <h2 id="return">Return</h2>
 <p>to_dump: dict
@@ -583,7 +590,7 @@ Updated dump doctionary</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_dump_report(to_dump, net, new_positive_counter):
+<pre><code class="python">def update_dump_report(to_dump, net, new_positive_counter, use_probabilities):
     &#34;&#34;&#34;
     Update the simulation dump in case light dump is selected
     
@@ -597,6 +604,9 @@ Updated dump doctionary</p></div>
 
     new_positive_counter: int
         Number of new positive nodes found on this iteration
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
 
     Return
     ------
@@ -626,6 +636,8 @@ Updated dump doctionary</p></div>
     to_dump[&#39;positive&#39;].append(positive)
     to_dump[&#39;tested&#39;].append(tested)
     to_dump[&#39;new_positive_counter&#39;].append(new_positive_counter)
+    if use_probabilities:
+        to_dump[&#39;avg_prob_inf&#39;].append(np.mean(net.vs[&#39;prob_inf&#39;]))
     to_dump[&#39;total&#39;].append(sum(network_report.values()))
 
     return to_dump</code></pre>

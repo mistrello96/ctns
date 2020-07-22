@@ -57,7 +57,7 @@ def reset_network(G):
         if "prob_inf" in G.vs.attributes():
             node["prob_inf"] = 0.0
 
-def update_dump_report(to_dump, net, new_positive_counter):
+def update_dump_report(to_dump, net, new_positive_counter, use_probabilities):
     """
     Update the simulation dump in case light dump is selected
     
@@ -71,6 +71,9 @@ def update_dump_report(to_dump, net, new_positive_counter):
 
     new_positive_counter: int
         Number of new positive nodes found on this iteration
+
+    use_probabilities: bool
+        Enables probabilities of being infected estimation
 
     Return
     ------
@@ -100,7 +103,8 @@ def update_dump_report(to_dump, net, new_positive_counter):
     to_dump['positive'].append(positive)
     to_dump['tested'].append(tested)
     to_dump['new_positive_counter'].append(new_positive_counter)
-    to_dump['avg_prob_inf'].append(np.mean(net.vs['prob_inf']))
+    if use_probabilities:
+        to_dump['avg_prob_inf'].append(np.mean(net.vs['prob_inf']))
     to_dump['total'].append(sum(network_report.values()))
 
     return to_dump

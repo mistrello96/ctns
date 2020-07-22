@@ -39,8 +39,8 @@ except ImportError as e:
     from steps import step
     from utility import update_dump_report
 
-def run_simulation(n_of_families = 2000,
-    use_steps = False,
+def run_simulation(n_of_families = 250,
+    use_steps = True,
     number_of_steps = 150,
     incubation_days = 5,
     infection_duration = 21,
@@ -48,16 +48,16 @@ def run_simulation(n_of_families = 2000,
     restriction_duration = 21,
     social_distance_strictness = 2,
     restriction_decreasing = True,
-    n_initial_infected_nodes = 10,
+    n_initial_infected_nodes = 3,
     R_0 = 2.9,
-    n_test = 10,
-    policy_test = &#34;PBI&#34;,
+    n_test = 3,
+    policy_test = &#34;Random&#34;,
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
-    quarantine_efficiency = 0.3,
+    quarantine_efficiency = 0.4,
     use_random_seed = True,
-    seed = 1,
-    use_probabilities = True,
+    seed = 42,
+    use_probabilities = False,
     alpha = 0.5,
     gamma = 0.003,
     lambdaa = 0.02,
@@ -220,6 +220,9 @@ def run_simulation(n_of_families = 2000,
     if dump_type != &#34;full&#34; and dump_type != &#34;light&#34;:
         print(&#34;Invalid dump type&#34;)
         sys.exit()
+    if path == None:
+        print(&#34;Invalid path&#34;)
+        sys.exit()
     if not use_probabilities and policy_test == &#34;PBI&#34;:
         print(&#34;Cannot use PBI if probability of being infected is not enabled&#34;)
         sys.exit()
@@ -268,6 +271,7 @@ def run_simulation(n_of_families = 2000,
         to_dump[&#39;tested&#39;] = list()
         to_dump[&#39;total&#39;] = list()
         to_dump[&#39;new_positive_counter&#39;] = list()
+        to_dump[&#39;avg_prob_inf&#39;] = list()
         to_dump[&#39;parameters&#39;] = config
 
     if use_steps:
@@ -280,7 +284,7 @@ def run_simulation(n_of_families = 2000,
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net, new_positive_counter)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter, use_probabilities)
     else:
         exposed = n_initial_infected_nodes
         infected = 0
@@ -296,7 +300,7 @@ def run_simulation(n_of_families = 2000,
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net, new_positive_counter)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter, use_probabilities)
             
             network_report = Counter(net.vs[&#34;agent_status&#34;])
             infected = network_report[&#34;I&#34;]
@@ -422,7 +426,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="ctns.contact_network_simulator.run_simulation"><code class="name flex">
-<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=2000, use_steps=False, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=10, R_0=2.9, n_test=10, policy_test='PBI', contact_tracing_efficiency=0.8, contact_tracing_duration=14, quarantine_efficiency=0.3, use_random_seed=True, seed=1, use_probabilities=True, alpha=0.5, gamma=0.003, lambdaa=0.02, dump_type=None, path=None)</span>
+<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=250, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=3, R_0=2.9, n_test=3, policy_test='Random', contact_tracing_efficiency=0.8, contact_tracing_duration=14, quarantine_efficiency=0.4, use_random_seed=True, seed=42, use_probabilities=False, alpha=0.5, gamma=0.003, lambdaa=0.02, dump_type=None, path=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Execute the simulation and dump/return resulting networks</p>
@@ -490,8 +494,8 @@ The dumped file will have the following structure:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def run_simulation(n_of_families = 2000,
-    use_steps = False,
+<pre><code class="python">def run_simulation(n_of_families = 250,
+    use_steps = True,
     number_of_steps = 150,
     incubation_days = 5,
     infection_duration = 21,
@@ -499,16 +503,16 @@ The dumped file will have the following structure:
     restriction_duration = 21,
     social_distance_strictness = 2,
     restriction_decreasing = True,
-    n_initial_infected_nodes = 10,
+    n_initial_infected_nodes = 3,
     R_0 = 2.9,
-    n_test = 10,
-    policy_test = &#34;PBI&#34;,
+    n_test = 3,
+    policy_test = &#34;Random&#34;,
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
-    quarantine_efficiency = 0.3,
+    quarantine_efficiency = 0.4,
     use_random_seed = True,
-    seed = 1,
-    use_probabilities = True,
+    seed = 42,
+    use_probabilities = False,
     alpha = 0.5,
     gamma = 0.003,
     lambdaa = 0.02,
@@ -671,6 +675,9 @@ The dumped file will have the following structure:
     if dump_type != &#34;full&#34; and dump_type != &#34;light&#34;:
         print(&#34;Invalid dump type&#34;)
         sys.exit()
+    if path == None:
+        print(&#34;Invalid path&#34;)
+        sys.exit()
     if not use_probabilities and policy_test == &#34;PBI&#34;:
         print(&#34;Cannot use PBI if probability of being infected is not enabled&#34;)
         sys.exit()
@@ -719,6 +726,7 @@ The dumped file will have the following structure:
         to_dump[&#39;tested&#39;] = list()
         to_dump[&#39;total&#39;] = list()
         to_dump[&#39;new_positive_counter&#39;] = list()
+        to_dump[&#39;avg_prob_inf&#39;] = list()
         to_dump[&#39;parameters&#39;] = config
 
     if use_steps:
@@ -731,7 +739,7 @@ The dumped file will have the following structure:
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net, new_positive_counter)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter, use_probabilities)
     else:
         exposed = n_initial_infected_nodes
         infected = 0
@@ -747,7 +755,7 @@ The dumped file will have the following structure:
             if dump_type == &#34;full&#34;:
                 to_dump[&#34;nets&#34;].append(net.copy())
             if dump_type == &#34;light&#34;:
-                to_dump = update_dump_report(to_dump, net, new_positive_counter)
+                to_dump = update_dump_report(to_dump, net, new_positive_counter, use_probabilities)
             
             network_report = Counter(net.vs[&#34;agent_status&#34;])
             infected = network_report[&#34;I&#34;]
