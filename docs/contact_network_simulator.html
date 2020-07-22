@@ -55,7 +55,7 @@ def run_simulation(n_of_families = 250,
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
     quarantine_efficiency = 0.4,
-    use_random_seed = True,
+    use_fixed_seed = True,
     seed = 42,
     use_probabilities = False,
     alpha = 0.5,
@@ -118,7 +118,7 @@ def run_simulation(n_of_families = 250,
     quarantine_efficiency: float
         The percentage of contacts put under quarantine
 
-    use_random_seed: bool
+    use_fixed_seed: bool
         Id use or not a fixed random seed
 
     seed: int
@@ -154,7 +154,7 @@ def run_simulation(n_of_families = 250,
     &#34;&#34;&#34;
 
     # generate new edges
-    if use_random_seed:
+    if use_fixed_seed:
         np.random.seed(seed = seed)
         random.seed(seed)
     else:
@@ -339,8 +339,8 @@ def main():
         contact_tracing_efficiency = float(input(&#34;Please insert a value between 0 and 1 to set the contact tracing efficiency: &#34;))
         contact_tracing_duration = int(input(&#34;Please insert for how many days the contact tracing is computed: &#34;))
         quarantine_efficiency = float(input(&#34;Please insert a value between 0 and 1 to set the quarantine efficiency: &#34;))
-        use_random_seed = int(input(&#34;Press 1 use a fixed a random seed or 0 to pick a random seed: &#34;))
-        if use_random_seed:
+        use_fixed_seed = int(input(&#34;Press 1 use a fixed a random seed or 0 to pick a random seed: &#34;))
+        if use_fixed_seed:
             seed = int(input(&#34;Please insert the random seed: &#34;))
         use_probabilities = int(input(&#34;Press 1 to enable estimation of probabilities of being infected, 0 otherwise: &#34;))
         if use_probabilities:
@@ -353,7 +353,7 @@ def main():
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
-            quarantine_efficiency, use_random_seed, seed, use_probabilities, alpha, gamma, lambdaa, dump_type, path)
+            quarantine_efficiency, use_fixed_seed, seed, use_probabilities, alpha, gamma, lambdaa, dump_type, path)
     else:
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
@@ -404,8 +404,8 @@ if __name__ == &#34;__main__&#34;:
         contact_tracing_efficiency = float(input(&#34;Please insert a value between 0 and 1 to set the contact tracing efficiency: &#34;))
         contact_tracing_duration = int(input(&#34;Please insert for how many days the contact tracing is computed: &#34;))
         quarantine_efficiency = float(input(&#34;Please insert a value between 0 and 1 to set the quarantine efficiency: &#34;))
-        use_random_seed = int(input(&#34;Press 1 use a fixed a random seed or 0 to pick a random seed: &#34;))
-        if use_random_seed:
+        use_fixed_seed = int(input(&#34;Press 1 use a fixed a random seed or 0 to pick a random seed: &#34;))
+        if use_fixed_seed:
             seed = int(input(&#34;Please insert the random seed: &#34;))
         use_probabilities = int(input(&#34;Press 1 to enable estimation of probabilities of being infected, 0 otherwise: &#34;))
         if use_probabilities:
@@ -418,7 +418,7 @@ if __name__ == &#34;__main__&#34;:
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
-            quarantine_efficiency, use_random_seed, seed, use_probabilities, alpha, gamma, lambdaa, dump_type, path)
+            quarantine_efficiency, use_fixed_seed, seed, use_probabilities, alpha, gamma, lambdaa, dump_type, path)
     else:
         dump_type = input(&#34;Please insert the dump type. Can be either full of light: &#34;)
         path = input(&#34;Please insert the path with the file to dump. Please omit file type, that will be set automatically: &#34;)
@@ -426,7 +426,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="ctns.contact_network_simulator.run_simulation"><code class="name flex">
-<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=250, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=3, R_0=2.9, n_test=3, policy_test='Random', contact_tracing_efficiency=0.8, contact_tracing_duration=14, quarantine_efficiency=0.4, use_random_seed=True, seed=42, use_probabilities=False, alpha=0.5, gamma=0.003, lambdaa=0.02, dump_type=None, path=None)</span>
+<span>def <span class="ident">run_simulation</span></span>(<span>n_of_families=250, use_steps=True, number_of_steps=150, incubation_days=5, infection_duration=21, initial_day_restriction=50, restriction_duration=21, social_distance_strictness=2, restriction_decreasing=True, n_initial_infected_nodes=3, R_0=2.9, n_test=3, policy_test='Random', contact_tracing_efficiency=0.8, contact_tracing_duration=14, quarantine_efficiency=0.4, use_fixed_seed=True, seed=42, use_probabilities=False, alpha=0.5, gamma=0.003, lambdaa=0.02, dump_type=None, path=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Execute the simulation and dump/return resulting networks</p>
@@ -466,7 +466,7 @@ Note that family contacts are not included in this reduction</dd>
 <dd>How many days the contacts of a node are tracked back</dd>
 <dt><strong><code>quarantine_efficiency</code></strong> :&ensp;<code>float</code></dt>
 <dd>The percentage of contacts put under quarantine</dd>
-<dt><strong><code>use_random_seed</code></strong> :&ensp;<code>bool</code></dt>
+<dt><strong><code>use_fixed_seed</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Id use or not a fixed random seed</dd>
 <dt><strong><code>seed</code></strong> :&ensp;<code>int</code></dt>
 <dd>The random seed value</dd>
@@ -510,7 +510,7 @@ The dumped file will have the following structure:
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
     quarantine_efficiency = 0.4,
-    use_random_seed = True,
+    use_fixed_seed = True,
     seed = 42,
     use_probabilities = False,
     alpha = 0.5,
@@ -573,7 +573,7 @@ The dumped file will have the following structure:
     quarantine_efficiency: float
         The percentage of contacts put under quarantine
 
-    use_random_seed: bool
+    use_fixed_seed: bool
         Id use or not a fixed random seed
 
     seed: int
@@ -609,7 +609,7 @@ The dumped file will have the following structure:
     &#34;&#34;&#34;
 
     # generate new edges
-    if use_random_seed:
+    if use_fixed_seed:
         np.random.seed(seed = seed)
         random.seed(seed)
     else:

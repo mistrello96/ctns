@@ -27,7 +27,7 @@ def run_simulation(n_of_families = 250,
     contact_tracing_efficiency = 0.8,
     contact_tracing_duration = 14,
     quarantine_efficiency = 0.4,
-    use_random_seed = True,
+    use_fixed_seed = True,
     seed = 42,
     use_probabilities = False,
     alpha = 0.5,
@@ -90,7 +90,7 @@ def run_simulation(n_of_families = 250,
     quarantine_efficiency: float
         The percentage of contacts put under quarantine
 
-    use_random_seed: bool
+    use_fixed_seed: bool
         Id use or not a fixed random seed
 
     seed: int
@@ -126,7 +126,7 @@ def run_simulation(n_of_families = 250,
     """
 
     # generate new edges
-    if use_random_seed:
+    if use_fixed_seed:
         np.random.seed(seed = seed)
         random.seed(seed)
     else:
@@ -311,8 +311,8 @@ def main():
         contact_tracing_efficiency = float(input("Please insert a value between 0 and 1 to set the contact tracing efficiency: "))
         contact_tracing_duration = int(input("Please insert for how many days the contact tracing is computed: "))
         quarantine_efficiency = float(input("Please insert a value between 0 and 1 to set the quarantine efficiency: "))
-        use_random_seed = int(input("Press 1 use a fixed a random seed or 0 to pick a random seed: "))
-        if use_random_seed:
+        use_fixed_seed = int(input("Press 1 use a fixed a random seed or 0 to pick a random seed: "))
+        if use_fixed_seed:
             seed = int(input("Please insert the random seed: "))
         use_probabilities = int(input("Press 1 to enable estimation of probabilities of being infected, 0 otherwise: "))
         if use_probabilities:
@@ -325,7 +325,7 @@ def main():
         run_simulation(n_of_families, use_steps, number_of_steps, incubation_days, infection_duration,
             initial_day_restriction, restriction_duration, social_distance_strictness, restriction_decreasing,
             n_initial_infected_nodes, R_0, n_test, policy_test, contact_tracing_efficiency, contact_tracing_duration,
-            quarantine_efficiency, use_random_seed, seed, use_probabilities, alpha, gamma, lambdaa, dump_type, path)
+            quarantine_efficiency, use_fixed_seed, seed, use_probabilities, alpha, gamma, lambdaa, dump_type, path)
     else:
         dump_type = input("Please insert the dump type. Can be either full of light: ")
         path = input("Please insert the path with the file to dump. Please omit file type, that will be set automatically: ")
